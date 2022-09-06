@@ -9,6 +9,8 @@ namespace FanCtrlCommon
         [OperationContract]
         FanCtrlData GetData();
         [OperationContract]
+        uint GetFan1Rpm();
+        [OperationContract]
         bool Level2IsForced();
         [OperationContract]
         void SetLevel2IsForced(bool forced);

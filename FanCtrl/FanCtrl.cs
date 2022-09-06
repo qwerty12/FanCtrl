@@ -65,7 +65,7 @@ namespace FanCtrl
                     if (sensor.SensorType != SensorType.Temperature || !sensor.Value.HasValue)
                         continue;
 
-                    //Debug.WriteLine("\tSensor: {0} ({2}), value: {1}", sensor.Name, sensor.Value.Value, hardware.Name);
+                    //Debug.WriteLine("Sensor: {0} ({2}), value: {1}", sensor.Name, sensor.Value.Value, hardware.Name);
                     uint val = (uint)sensor.Value;
                     if (val <= result)
                         continue;
@@ -97,6 +97,7 @@ namespace FanCtrl
                     return;
                 }
 
+                startTries = 5;
                 computer.Open();
                 EnableManualFanControl();
             }
@@ -202,6 +203,11 @@ namespace FanCtrl
         public FanCtrlData GetData()
         {
             return new FanCtrlData(maxTemp, fanlvl);
+        }
+
+        public uint GetFan1Rpm()
+        {
+            return io.Opened ? io.dell_smm_io(DellSMMIO.DELL_SMM_IO_GET_FAN_RPM, DellSMMIO.DELL_SMM_IO_FAN1) : 0;
         }
 
         private void SetFanLevel(uint level)

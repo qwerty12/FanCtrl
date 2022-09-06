@@ -18,6 +18,7 @@ namespace FanCtrlTray
 
         static bool run = true;
         static IFanCtrlInterface interf = null;
+        static ToolStripMenuItem rpmItem = null;
         static ToolStripMenuItem forceItem = null;
         static ToolStripItem exitItem = null;
 
@@ -28,9 +29,12 @@ namespace FanCtrlTray
 
             ContextMenuStrip strip = new ContextMenuStrip();
 
+            rpmItem = (ToolStripMenuItem)strip.Items.Add("Fan0: RPM");
+            //rpmItem.Enabled = false;
             forceItem = (ToolStripMenuItem)strip.Items.Add("Force full speed");
             strip.Items.Add("-");
             exitItem = strip.Items.Add("Exit");
+            strip.Opening += Strip_Opening;
             strip.ItemClicked += Strip_ItemClicked;
 
             NotifyIcon icon = new NotifyIcon();
@@ -102,10 +106,12 @@ namespace FanCtrlTray
             {
                 pipeFactory.Close();
             }
-            catch(Exception)
-            {
+            catch {}
+        }
 
-            }
+        private static void Strip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            rpmItem.Text = $"Fan0: {(interf != null ? interf.GetFan1Rpm().ToString() : string.Empty)} RPM";
         }
 
         private static void Strip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
