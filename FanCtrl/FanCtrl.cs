@@ -40,7 +40,7 @@ namespace FanCtrl
             host.AddServiceEndpoint(typeof(IFanCtrlInterface), new NetNamedPipeBinding(NetNamedPipeSecurityMode.None), "FanCtrlInterface");
         }
 
-        sbyte fanlvl = -1;
+        uint fanlvl = uint.MaxValue;
         uint maxTemp;
         ushort startTries = 5;
         ushort ticksToSkip = 0;
@@ -154,7 +154,7 @@ namespace FanCtrl
             timer.Stop();
 
             io.dell_smm_io(DellSMMIO.DELL_SMM_IO_ENABLE_FAN_CTL1, DellSMMIO.DELL_SMM_IO_NO_ARG);
-            fanlvl = -1;
+            fanlvl = uint.MaxValue;
             io.BDSID_Shutdown();
 
             try
@@ -165,13 +165,15 @@ namespace FanCtrl
 
         public FanCtrlData GetData()
         {
-            return new FanCtrlData(maxTemp,fanlvl);
+            return new FanCtrlData(maxTemp, fanlvl);
         }
 
         private void SetFanLevel(uint level)
         {
+            if (/*level < DellSMMIO.DELL_SMM_IO_FAN_LV0 || level > DellSMMIO.DELL_SMM_IO_FAN_LV2 ||*/ level == fanlvl)
+                return;
             io.dell_smm_io_set_fan_lv(DellSMMIO.DELL_SMM_IO_FAN1, level);
-            fanlvl = (sbyte)level;
+            fanlvl = level;
         }
 
         public bool Level2IsForced()

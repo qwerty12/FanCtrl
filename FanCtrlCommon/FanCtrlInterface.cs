@@ -20,8 +20,8 @@ namespace FanCtrlCommon
         [DataMember]
         public uint SystemTemperature { get; private set; }
         [DataMember]
-        public sbyte FanLevel { get; private set; }
-        public FanCtrlData(uint temp, sbyte fan)
+        public uint FanLevel { get; private set; }
+        public FanCtrlData(uint temp, uint fan)
         {
             SystemTemperature = temp;
             FanLevel = fan;

@@ -45,7 +45,7 @@ namespace FanCtrlTray
             Graphics graph = Graphics.FromImage(bitmap);
             SizeF txtSize;
             string txt;
-            byte fanlvl;
+            uint fanlvl;
             FanCtrlData d;
 
             uint counter = 0;
@@ -66,7 +66,7 @@ namespace FanCtrlTray
                         else
                             txt = "!";
 
-                        fanlvl = Math.Min((byte)d.FanLevel, (byte)2);
+                        fanlvl = Math.Min(d.FanLevel, 2);
 
                         forceItem.Checked = interf.Level2IsForced();
                     }
