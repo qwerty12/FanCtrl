@@ -8,15 +8,7 @@ namespace DellFanControl
     public class Interop
     {
 
-        public const uint INVALID_HANDLE_VALUE = 0;
-
-        [DllImport("User32.Dll", EntryPoint = "PostMessageA")]
-        public static extern bool PostMessage(
-            IntPtr hWnd,
-            uint msg,
-            int wParam,
-            int lParam
-        );
+        public static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
 
         [DllImport("advapi32.dll", SetLastError = true)]
         [

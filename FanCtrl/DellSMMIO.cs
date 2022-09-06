@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using DellFanControl;
-using Microsoft.Win32;
 
 //Parts taken from https://github.com/marcharding/DellFanControl
 
@@ -38,16 +37,17 @@ namespace FanCtrl
         public const uint DELL_SMM_IO_ENABLE_FAN_CTL2 = 0x35a3;
         public const uint DELL_SMM_IO_NO_ARG = 0x0;
 
-        public Boolean BDSID_InstallDriver()
+        private readonly Process thisProcess = Process.GetCurrentProcess();
+        private readonly IntPtr defaultProcessAffinity = Process.GetCurrentProcess().ProcessorAffinity;
+
+        public bool BDSID_InstallDriver()
         {
             BDSID_RemoveDriver();
-
-            IntPtr hService = new IntPtr();
 
             IntPtr hSCManager = Interop.OpenSCManager(null, null, (uint)Interop.SCM_ACCESS.SC_MANAGER_ALL_ACCESS);
             if (hSCManager != IntPtr.Zero)
             {
-                hService = Interop.CreateService(
+                IntPtr hService = Interop.CreateService(
                     hSCManager,
                     "BZHDELLSMMIO",
                     "BZHDELLSMMIO",
@@ -66,47 +66,14 @@ namespace FanCtrl
                 Interop.CloseServiceHandle(hSCManager);
 
                 if (hService == IntPtr.Zero)
-                {
                     return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
 
-            Interop.CloseServiceHandle(hService);
+                Interop.CloseServiceHandle(hService);
 
-            return true;
-        }
-
-        ushort[] badSensors = new ushort[DELL_SMM_IO_SENSOR_GPU+1];
-
-        public uint MaxTemperature()
-        {
-            uint result = 0;
-
-            for(uint i = 0; i <= DELL_SMM_IO_SENSOR_GPU; i++)
-            {
-                if (i == 1)
-                    continue; //skip the chipset, it's not even cooled
-
-                uint current = dell_smm_io(DELL_SMM_IO_GET_SENSOR_TEMP, i) & 0xff;
-
-                if (current == 0 || current > DELL_SMM_IO_SENSOR_MAX_TEMP)
-                    badSensors[i] = 15;
-                else if (badSensors[i] > 0)
-                    badSensors[i]--;
-                else
-                    result = Math.Max(result, current);
+                return true;
             }
 
-            return result;
-        }
-
-        public bool IsOnAC()
-        {
-            return dell_smm_io(DELL_SMM_IO_GET_POWER_STATUS, DELL_SMM_IO_NO_ARG) == DELL_SMM_IO_POWER_STATUS_AC;
+            return false;
         }
 
         public bool Open()
@@ -130,9 +97,9 @@ namespace FanCtrl
             }
         }
 
-        public Boolean BDSID_StartDriver()
+        public bool BDSID_StartDriver()
         {
-            Boolean bResult;
+            bool bResult = false;
             IntPtr hSCManager = Interop.OpenSCManager(null, null, (uint)Interop.SCM_ACCESS.SC_MANAGER_ALL_ACCESS);
             if (hSCManager != IntPtr.Zero)
             {
@@ -142,32 +109,12 @@ namespace FanCtrl
 
                 if (hService != IntPtr.Zero)
                 {
-
                     bResult = Interop.StartService(hService, 0, null); // || GetLastError() == ERROR_SERVICE_ALREADY_RUNNING;
                     Interop.CloseServiceHandle(hService);
                 }
-                else
-                {
-                    return false;
-                }
-
-            }
-            else
-            {
-                return false;
             }
 
             return bResult;
-        }
-
-        public uint dell_smm_io_get_cpu_temperature()
-        {
-            return dell_smm_io(DELL_SMM_IO_GET_SENSOR_TEMP, DELL_SMM_IO_SENSOR_CPU);
-        }
-
-        public uint dell_smm_io_get_gpu_temperature()
-        {
-            return dell_smm_io(DELL_SMM_IO_GET_SENSOR_TEMP, DELL_SMM_IO_SENSOR_GPU);
         }
 
         public void dell_smm_io_set_fan_lv(uint fan_no, uint lv)
@@ -183,8 +130,6 @@ namespace FanCtrl
 
         public uint dell_smm_io(uint cmd, uint data)
         {
-            Process.GetCurrentProcess().ProcessorAffinity = (System.IntPtr)1;
-
             Interop.SMBIOS_PKG cam = new Interop.SMBIOS_PKG
             {
                 cmd = cmd,
@@ -195,6 +140,9 @@ namespace FanCtrl
 
             uint result_size = 0;
 
+            // TODO: is this needed? It's the driver making the request, not us...
+            thisProcess.ProcessorAffinity = (System.IntPtr) 1;
+
             bool status_dic = Interop.DeviceIoControl(hDriver,
                 Interop.IOCTL_BZH_DELL_SMM_RWREG,
                 ref cam,
@@ -204,19 +152,12 @@ namespace FanCtrl
                 ref result_size,
                 IntPtr.Zero);
 
-            if (status_dic == false)
-            {
-                return 0;
-            }
-            else
-            {
-                uint foo = cam.cmd;
+            thisProcess.ProcessorAffinity = defaultProcessAffinity;
 
-                return foo;
-            }
+            return status_dic ? cam.cmd : 0;
         }
 
-        public Boolean BDSID_RemoveDriver()
+        public bool BDSID_RemoveDriver()
         {
             UInt32 dwBytesNeeded;
             UInt32 cbBufSize;
@@ -253,7 +194,7 @@ namespace FanCtrl
                 {
                     Marshal.FreeCoTaskMem(ptr);
                     Interop.CloseServiceHandle(hService);
-                    return bResult;
+                    return false;
                 }
 
                 Interop.QUERY_SERVICE_CONFIG pServiceConfig = (Interop.QUERY_SERVICE_CONFIG)Marshal.PtrToStructure(ptr, typeof(Interop.QUERY_SERVICE_CONFIG));
@@ -272,9 +213,8 @@ namespace FanCtrl
             return bResult;
         }
 
-        public Boolean BDSID_StopDriver()
+        public bool BDSID_StopDriver()
         {
-
             Interop.SERVICE_STATUS serviceStatus = new Interop.SERVICE_STATUS();
 
             IntPtr hSCManager = Interop.OpenSCManager(null, null, (uint)Interop.SCM_ACCESS.SC_MANAGER_ALL_ACCESS);
@@ -287,28 +227,23 @@ namespace FanCtrl
 
                 if (hService != IntPtr.Zero)
                 {
-                    Boolean bResult = Interop.ControlService(hService, Interop.SERVICE_CONTROL.STOP, ref serviceStatus);
+                    Interop.ControlService(hService, Interop.SERVICE_CONTROL.STOP, ref serviceStatus);
                     Interop.CloseServiceHandle(hService);
+                    return true;
                 }
-                else
-                    return false;
             }
-            else
-                return false;
 
-            return true;
+            return false;
         }
 
         public void Close()
         {
-            IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
-
-            if (hDriver != INVALID_HANDLE_VALUE)
+            if (hDriver != Interop.INVALID_HANDLE_VALUE)
             {
                 Interop.CloseHandle(this.hDriver);
             }
         }
-        public Boolean BDSID_Shutdown()
+        public bool BDSID_Shutdown()
         {
             Close();
             return BDSID_RemoveDriver();

@@ -70,7 +70,7 @@ namespace FanCtrlTray
 
                         forceItem.Checked = interf.Level2IsForced();
                     }
-                    catch (Exception e)
+                    catch
                     {
                         txt = "?";
                         fanlvl = 2;
