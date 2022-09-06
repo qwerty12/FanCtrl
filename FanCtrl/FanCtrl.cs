@@ -18,6 +18,7 @@ namespace FanCtrl
 
         public FanCtrl()
         {
+            CanHandlePowerEvent = true;
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
             InitializeComponent();
             io = new DellSMMIO();
@@ -97,7 +98,7 @@ namespace FanCtrl
                 }
 
                 computer.Open();
-                io.dell_smm_io(DellSMMIO.DELL_SMM_IO_DISABLE_FAN_CTL1, DellSMMIO.DELL_SMM_IO_NO_ARG);
+                EnableManualFanControl();
             }
 
             maxTemp = MaxTemperature();
@@ -141,20 +142,55 @@ namespace FanCtrl
             }
         }
 
+        protected override bool OnPowerEvent(PowerBroadcastStatus powerStatus)
+        {
+            switch (powerStatus)
+            {
+                case PowerBroadcastStatus.QuerySuspend:
+                case PowerBroadcastStatus.Suspend:
+                    timer.Stop();
+                    io.dell_smm_io_set_fan_lv(DellSMMIO.DELL_SMM_IO_FAN1, DellSMMIO.DELL_SMM_IO_FAN_LV0);
+                    if (powerStatus == PowerBroadcastStatus.Suspend)
+                        DisableManualFanControl();
+                    break;
+                case PowerBroadcastStatus.QuerySuspendFailed:
+                case PowerBroadcastStatus.ResumeSuspend:
+                    if (io.Opened)
+                        EnableManualFanControl();
+                    OnStart(null);
+                    break;
+                default:
+                    break;
+            }
+
+            return base.OnPowerEvent(powerStatus);
+        }
+
         protected override void OnStart(string[] args)
         {
+            ticksToSkip = ticksToSkip2 = 0;
+            fanlvl = uint.MaxValue;
             timer.Start();
             Timer_Elapsed(null, null);
-            host.Open();
+            if (host.State == CommunicationState.Created)
+                host.Open();
+        }
+
+        private void EnableManualFanControl()
+        {
+            io.dell_smm_io(DellSMMIO.DELL_SMM_IO_DISABLE_FAN_CTL1, DellSMMIO.DELL_SMM_IO_NO_ARG);
+        }
+
+        private void DisableManualFanControl()
+        {
+            io.dell_smm_io(DellSMMIO.DELL_SMM_IO_ENABLE_FAN_CTL1, DellSMMIO.DELL_SMM_IO_NO_ARG);
         }
 
         protected override void OnStop()
         {
             host.Close();
             timer.Stop();
-
-            io.dell_smm_io(DellSMMIO.DELL_SMM_IO_ENABLE_FAN_CTL1, DellSMMIO.DELL_SMM_IO_NO_ARG);
-            fanlvl = uint.MaxValue;
+            DisableManualFanControl();
             io.BDSID_Shutdown();
 
             try
@@ -170,7 +206,7 @@ namespace FanCtrl
 
         private void SetFanLevel(uint level)
         {
-            if (/*level < DellSMMIO.DELL_SMM_IO_FAN_LV0 || level > DellSMMIO.DELL_SMM_IO_FAN_LV2 ||*/ level == fanlvl)
+            if (level == fanlvl)
                 return;
             io.dell_smm_io_set_fan_lv(DellSMMIO.DELL_SMM_IO_FAN1, level);
             fanlvl = level;
