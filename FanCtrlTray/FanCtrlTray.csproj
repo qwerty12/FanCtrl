@@ -43,7 +43,8 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WinConsole.cs" Condition="'$(Configuration)' == 'Debug'"/>
+    <Compile Include="ThemeBollocks.cs" />
+    <Compile Include="WinConsole.cs" Condition="'$(Configuration)' == 'Debug'" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

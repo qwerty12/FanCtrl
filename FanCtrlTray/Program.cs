@@ -25,6 +25,9 @@ namespace FanCtrlTray
         static ToolStripItem exitItem = null;
         static Process thisProcess = Process.GetCurrentProcess();
 
+        static Pen normalBorderPen;
+        static SolidBrush brush;
+        static Graphics graph;
 
         static void Main(string[] args)
         {
@@ -50,16 +53,20 @@ namespace FanCtrlTray
             icon.Visible = true;
             icon.ContextMenuStrip = strip;
 
-            Pen[] pens = new Pen[] { new Pen(Color.Green), new Pen(Color.White), new Pen(Color.Red) };
-            SolidBrush brush = new SolidBrush(Color.White);
+            normalBorderPen = new Pen(Color.White);
+            Pen[] pens = new Pen[] { new Pen(Color.Green), normalBorderPen, new Pen(Color.Red) };
+            brush = new SolidBrush(Color.White);
             Font font = new Font("Tahoma", 8);
             Bitmap bitmap = new Bitmap(16, 16);
-            Graphics graph = Graphics.FromImage(bitmap);
+            graph = Graphics.FromImage(bitmap);
             SizeF txtSize;
             string txt;
             uint fanlvl;
             FanCtrlData d;
             uint lastFanSpeed = 0;
+
+            adaptTrayIconForTheme();
+            var themeChangeListener = new ThemeBollocks(icon, adaptTrayIconForTheme);
 
             uint counter = 0;
 
@@ -122,6 +129,7 @@ namespace FanCtrlTray
                 System.Threading.Thread.Sleep(CycleTime);
             }
 
+            themeChangeListener = null;
             icon.Visible = false;
 
             try
@@ -155,5 +163,22 @@ namespace FanCtrlTray
                 interf.SetLevel2IsForced(forceItem.Checked = !forceItem.Checked);
             }
         }
+
+        private static void adaptTrayIconForTheme()
+        {
+            if (ThemeBollocks.IsTaskbarDark())
+            {
+                normalBorderPen.Color = Color.White;
+                brush.Color = Color.White;
+                graph.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SystemDefault;
+            }
+            else
+            {
+                normalBorderPen.Color = Color.Black;
+                brush.Color = Color.Black;
+                graph.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+            }
+        }
+
     }
 }
