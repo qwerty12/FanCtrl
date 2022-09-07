@@ -8,12 +8,8 @@ using System.Diagnostics;
 
 namespace FanCtrlTray
 {
-
     class Program
     {
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        extern static bool DestroyIcon(IntPtr handle);
-
         const int UpdateTime = 1000;
         const int CycleTime = 50;
         const int CyclesToWaste = (UpdateTime / CycleTime) - 1;
@@ -116,7 +112,7 @@ namespace FanCtrlTray
                     graph.DrawString(txt, font, brush, 8 - txtSize.Width / 2, 8 - txtSize.Height / 2);
 
                     icon.Icon = Icon.FromHandle(bitmap.GetHicon());
-                    DestroyIcon(icon.Icon.Handle);
+                    NativeMethods.DestroyIcon(icon.Icon.Handle);
 
                     counter = CyclesToWaste;
                 }

@@ -1,16 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
 namespace FanCtrlTray
 {
-    internal class ThemeBollocks : NativeWindow
+    internal sealed class ThemeBollocks : NativeWindow
     {
         private const int WM_DWMCOLORIZATIONCOLORCHANGED = 0x320,
                           WM_DWMCOMPOSITIONCHANGED = 0x31E,
@@ -24,7 +18,7 @@ namespace FanCtrlTray
             ThemeChangedCallback = fnThemeChangedCallback;
             t.Interval = 1000;
             t.Tick += new EventHandler(OnTimerTick);
-            AssignHandle(NotifyIconGetHwnd(parent));
+            AssignHandle(NotifyIconHelper.GetHandle(parent));
             parent.Disposed += new EventHandler(this.OnHandleDestroyed);
         }
 
@@ -72,17 +66,6 @@ namespace FanCtrlTray
         public static bool IsTaskbarDark()
         {
             return ReadDword(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", "SystemUsesLightTheme") != 1;
-        }
-
-        // Karsten: https://stackoverflow.com/a/26695961
-        private static FieldInfo nfWindowField = typeof(NotifyIcon).GetField("window", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static IntPtr NotifyIconGetHwnd(NotifyIcon icon)
-        {
-            if (nfWindowField == null) throw new InvalidOperationException("[Useful error message]");
-            NativeWindow window = nfWindowField.GetValue(icon) as NativeWindow;
-
-            if (window == null) throw new InvalidOperationException("[Useful error message]");  // should not happen?
-            return window.Handle;
         }
 
         // Pilfered, like much of this file, from EarTrumpet

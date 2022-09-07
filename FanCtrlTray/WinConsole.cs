@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 using System.IO;
+using static FanCtrlTray.NativeMethods;
 
 namespace FanCtrlTray
 {
@@ -10,18 +11,15 @@ namespace FanCtrlTray
     {
         static public void Initialize(bool alwaysCreateNewConsole = true)
         {
-            bool consoleAttached = true;
             if (alwaysCreateNewConsole
-                || (AttachConsole(ATTACH_PARRENT) == 0
+                || (AttachConsole(ATTACH_PARENT_PROCESS)
                 && Marshal.GetLastWin32Error() != ERROR_ACCESS_DENIED))
             {
-                consoleAttached = AllocConsole() != 0;
-            }
-
-            if (consoleAttached)
-            {
-                InitializeOutStream();
-                InitializeInStream();
+                if (AllocConsole())
+                {
+                    InitializeOutStream();
+                    InitializeInStream();
+                }
             }
         }
 
@@ -57,46 +55,6 @@ namespace FanCtrlTray
             return null;
         }
 
-        #region Win API Functions and Constants
-        [DllImport("kernel32.dll",
-            EntryPoint = "AllocConsole",
-            SetLastError = true,
-            CharSet = CharSet.Auto,
-            CallingConvention = CallingConvention.StdCall)]
-        private static extern int AllocConsole();
-
-        [DllImport("kernel32.dll",
-            EntryPoint = "AttachConsole",
-            SetLastError = true,
-            CharSet = CharSet.Auto,
-            CallingConvention = CallingConvention.StdCall)]
-        private static extern UInt32 AttachConsole(UInt32 dwProcessId);
-
-        [DllImport("kernel32.dll",
-            EntryPoint = "CreateFileW",
-            SetLastError = true,
-            CharSet = CharSet.Auto,
-            CallingConvention = CallingConvention.StdCall)]
-        private static extern IntPtr CreateFileW(
-              string lpFileName,
-              UInt32 dwDesiredAccess,
-              UInt32 dwShareMode,
-              IntPtr lpSecurityAttributes,
-              UInt32 dwCreationDisposition,
-              UInt32 dwFlagsAndAttributes,
-              IntPtr hTemplateFile
-            );
-
-        private const UInt32 GENERIC_WRITE = 0x40000000;
-        private const UInt32 GENERIC_READ = 0x80000000;
-        private const UInt32 FILE_SHARE_READ = 0x00000001;
-        private const UInt32 FILE_SHARE_WRITE = 0x00000002;
-        private const UInt32 OPEN_EXISTING = 0x00000003;
-        private const UInt32 FILE_ATTRIBUTE_NORMAL = 0x80;
-        private const UInt32 ERROR_ACCESS_DENIED = 5;
-
-        private const UInt32 ATTACH_PARRENT = 0xFFFFFFFF;
-
-        #endregion
+        private const UInt32 ATTACH_PARENT_PROCESS = 0xFFFFFFFF;
     }
 }
