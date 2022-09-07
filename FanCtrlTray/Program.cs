@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.ServiceModel;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace FanCtrlTray
 {
@@ -22,6 +23,7 @@ namespace FanCtrlTray
         static IFanCtrlInterface interf = null;
         static ToolStripMenuItem forceItem = null;
         static ToolStripItem exitItem = null;
+        static Process thisProcess = Process.GetCurrentProcess();
 
 
         static void Main(string[] args)
@@ -29,6 +31,7 @@ namespace FanCtrlTray
 #if DEBUG
             WinConsole.Initialize();
 #endif
+            thisProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
             ChannelFactory<IFanCtrlInterface> pipeFactory = new ChannelFactory<IFanCtrlInterface>(new NetNamedPipeBinding(NetNamedPipeSecurityMode.None), new EndpointAddress("net.pipe://localhost/FanCtrlInterface"));
 
             ContextMenuStrip strip = new ContextMenuStrip();
@@ -130,11 +133,13 @@ namespace FanCtrlTray
 
         private static void Strip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            thisProcess.PriorityClass = ProcessPriorityClass.Normal;
             getFanSpeed = true;
         }
 
         private static void Strip_Closing(object sender, ToolStripDropDownClosingEventArgs e)
         {
+            thisProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
             getFanSpeed = false;
         }
 
