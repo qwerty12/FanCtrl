@@ -1,10 +1,11 @@
 ﻿using FanCtrlCommon;
 using System;
 using System.Drawing;
-using System.Runtime.InteropServices;
 using System.ServiceModel;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Drawing.Drawing2D;
+using System.Drawing.Text;
 
 namespace FanCtrlTray
 {
@@ -49,33 +50,40 @@ namespace FanCtrlTray
             icon.Visible = true;
             icon.ContextMenuStrip = strip;
 
-            normalBorderPen = new Pen(Color.White);
-            Pen[] pens = new Pen[] { new Pen(Color.Green), normalBorderPen, new Pen(Color.Red) };
+            const int height = 16;
+            const int width = 16;
+            const int borderHeight = height - 1;
+            const int borderWidth = width - 1;
+            int FontSize = (int)Math.Ceiling(width / 1.5);
+
+            Pen[] pens = new Pen[] { new Pen(Color.Green), new Pen(Color.White), new Pen(Color.Red) };
+            normalBorderPen = pens[1];
             brush = new SolidBrush(Color.White);
-            Font font = new Font("Tahoma", 8);
-            Bitmap bitmap = new Bitmap(16, 16);
+            Font font = new Font("Tahoma", FontSize, FontStyle.Regular, GraphicsUnit.Pixel);
+            Bitmap bitmap = new Bitmap(width, height);
             graph = Graphics.FromImage(bitmap);
-            SizeF txtSize;
-            string txt;
-            uint fanlvl;
-            FanCtrlData d;
-            uint lastFanSpeed = 0;
+            graph.SmoothingMode = SmoothingMode.HighSpeed;
+            graph.TextRenderingHint = TextRenderingHint.SingleBitPerPixelGridFit;
 
             adaptTrayIconForTheme();
             var themeChangeListener = new ThemeBollocks(icon, adaptTrayIconForTheme);
 
+            uint lastFanSpeed = 0;
             uint counter = 0;
 
             while (run)
             {
                 if (counter == 0)
                 {
+                    string txt;
+                    uint fanlvl;
+
                     try
                     {
                         if (interf == null)
                             interf = pipeFactory.CreateChannel();
 
-                        d = interf.GetData();
+                        FanCtrlData d = interf.GetData();
 
                         if (getFanSpeed)
                         {
@@ -107,9 +115,9 @@ namespace FanCtrlTray
                     }
 
                     graph.Clear(Color.Transparent);
-                    graph.DrawRectangle(pens[fanlvl], 0, 0, 15, 15);
-                    txtSize = graph.MeasureString(txt, font);
-                    graph.DrawString(txt, font, brush, 8 - txtSize.Width / 2, 8 - txtSize.Height / 2);
+                    graph.DrawRectangle(pens[fanlvl], 0, 0, borderWidth, borderHeight);
+                    SizeF txtSize = graph.MeasureString(txt, font);
+                    graph.DrawString(txt, font, brush, (float)Math.Ceiling((width - txtSize.Width) / 2), (float)Math.Ceiling((height - txtSize.Height) / 2));
 
                     icon.Icon = Icon.FromHandle(bitmap.GetHicon());
                     NativeMethods.DestroyIcon(icon.Icon.Handle);
@@ -166,13 +174,11 @@ namespace FanCtrlTray
             {
                 normalBorderPen.Color = Color.White;
                 brush.Color = Color.White;
-                graph.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SystemDefault;
             }
             else
             {
                 normalBorderPen.Color = Color.Black;
                 brush.Color = Color.Black;
-                graph.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
             }
         }
 
