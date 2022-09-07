@@ -7,7 +7,7 @@ using DellFanControl;
 
 namespace FanCtrl
 {
-    public class DellSMMIO
+    public class DellSMMIO : IDisposable
     {
         IntPtr hDriver;
 
@@ -252,6 +252,11 @@ namespace FanCtrl
         public string getDriverPath()
         {
             return System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\bzh_dell_smm_io_x64.sys";
+        }
+
+        public void Dispose()
+        {
+            thisProcess.Dispose();
         }
     }
 }

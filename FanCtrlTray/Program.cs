@@ -147,8 +147,8 @@ namespace FanCtrlTray
 
         private static void Strip_Closing(object sender, ToolStripDropDownClosingEventArgs e)
         {
-            thisProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
             getFanSpeed = false;
+            thisProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
         }
 
         private static void Strip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)

@@ -18,9 +18,10 @@ namespace FanCtrl
 
         public FanCtrl()
         {
+            ServiceName = "FanCtrl";
             CanHandlePowerEvent = true;
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
-            InitializeComponent();
+
             io = new DellSMMIO();
             computer = new Computer
             {
@@ -37,6 +38,7 @@ namespace FanCtrl
             timer = new Timer();
             timer.Interval = 1000;
             timer.Elapsed += Timer_Elapsed;
+
             host = new ServiceHost(this, new Uri[] { new Uri("net.pipe://localhost") });
             host.AddServiceEndpoint(typeof(IFanCtrlInterface), new NetNamedPipeBinding(NetNamedPipeSecurityMode.None), "FanCtrlInterface");
         }
@@ -226,6 +228,16 @@ namespace FanCtrl
         public void SetLevel2IsForced(bool forced)
         {
             _level2forced = forced;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                timer.Dispose();
+                io.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }
