@@ -1174,7 +1174,7 @@ namespace FanCtrlTray
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool AttachConsole(uint dwProcessId);
 
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern IntPtr CreateFileW(
             string lpFileName,
             uint dwDesiredAccess,

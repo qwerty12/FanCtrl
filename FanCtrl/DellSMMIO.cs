@@ -44,10 +44,10 @@ namespace FanCtrl
         {
             BDSID_RemoveDriver();
 
-            IntPtr hSCManager = Interop.OpenSCManager(null, null, (uint)Interop.SCM_ACCESS.SC_MANAGER_ALL_ACCESS);
+            IntPtr hSCManager = Interop.OpenSCManagerW(null, null, (uint)Interop.SCM_ACCESS.SC_MANAGER_CREATE_SERVICE);
             if (hSCManager != IntPtr.Zero)
             {
-                IntPtr hService = Interop.CreateService(
+                IntPtr hService = Interop.CreateServiceW(
                     hSCManager,
                     "BZHDELLSMMIO",
                     "BZHDELLSMMIO",
@@ -57,7 +57,7 @@ namespace FanCtrl
                     Interop.SERVICE_ERROR_NORMAL,
                     this.getDriverPath(),
                     null,
-                    null,
+                    IntPtr.Zero,
                     null,
                     null,
                     null
@@ -78,12 +78,12 @@ namespace FanCtrl
 
         public bool Open()
         {
-            hDriver = Interop.CreateFile(@"\\.\BZHDELLSMMIO",
-                    Interop.GENERIC_READ | Interop.GENERIC_WRITE,
-                    Interop.FILE_SHARE_READ | Interop.FILE_SHARE_WRITE,
+            hDriver = Interop.CreateFileW(@"\\?\global\globalroot\Device\BZHDELLSMMIO",
+                    Interop.GENERIC_READ,
+                    Interop.FILE_SHARE_READ,
                     IntPtr.Zero,
                     Interop.OPEN_EXISTING,
-                    Interop.FILE_ATTRIBUTE_NORMAL,
+                    0,
                     IntPtr.Zero);
 
             return hDriver != IntPtr.Zero;
@@ -100,16 +100,16 @@ namespace FanCtrl
         public bool BDSID_StartDriver()
         {
             bool bResult = false;
-            IntPtr hSCManager = Interop.OpenSCManager(null, null, (uint)Interop.SCM_ACCESS.SC_MANAGER_ALL_ACCESS);
+            IntPtr hSCManager = Interop.OpenSCManagerW(null, null, (uint)Interop.SCM_ACCESS.SC_MANAGER_CONNECT);
             if (hSCManager != IntPtr.Zero)
             {
-                IntPtr hService = Interop.OpenService(hSCManager, "BZHDELLSMMIO", Interop.SERVICE_ALL_ACCESS);
+                IntPtr hService = Interop.OpenServiceW(hSCManager, "BZHDELLSMMIO", Interop.SERVICE_START);
 
                 Interop.CloseServiceHandle(hSCManager);
 
                 if (hService != IntPtr.Zero)
                 {
-                    bResult = Interop.StartService(hService, 0, null); // || GetLastError() == ERROR_SERVICE_ALREADY_RUNNING;
+                    bResult = Interop.StartServiceW(hService, 0, null); // || GetLastError() == ERROR_SERVICE_ALREADY_RUNNING;
                     Interop.CloseServiceHandle(hService);
                 }
             }
@@ -166,14 +166,14 @@ namespace FanCtrl
 
             BDSID_StopDriver();
 
-            IntPtr hSCManager = Interop.OpenSCManager(null, null, (uint)Interop.SCM_ACCESS.SC_MANAGER_ALL_ACCESS);
+            IntPtr hSCManager = Interop.OpenSCManagerW(null, null, (uint)Interop.SCM_ACCESS.SC_MANAGER_CONNECT);
 
             if (hSCManager == IntPtr.Zero)
             {
                 return false;
             }
 
-            IntPtr hService = Interop.OpenService(hSCManager, "BZHDELLSMMIO", Interop.SERVICE_ALL_ACCESS);
+            IntPtr hService = Interop.OpenServiceW(hSCManager, "BZHDELLSMMIO", Interop.SERVICE_QUERY_CONFIG | Interop.DELETE);
             Interop.CloseServiceHandle(hSCManager);
 
             if (hService == IntPtr.Zero)
@@ -181,14 +181,14 @@ namespace FanCtrl
                 return false;
             }
 
-            bResult = Interop.QueryServiceConfig(hService, IntPtr.Zero, 0, out dwBytesNeeded);
+            bResult = Interop.QueryServiceConfigW(hService, IntPtr.Zero, 0, out dwBytesNeeded);
 
             if (Interop.GetLastError() == Interop.ERROR_INSUFFICIENT_BUFFER)
             {
                 cbBufSize = dwBytesNeeded;
                 IntPtr ptr = Marshal.AllocCoTaskMem((int)dwBytesNeeded);
 
-                bResult = Interop.QueryServiceConfig(hService, ptr, cbBufSize, out dwBytesNeeded);
+                bResult = Interop.QueryServiceConfigW(hService, ptr, cbBufSize, out dwBytesNeeded);
 
                 if (!bResult)
                 {
@@ -217,11 +217,11 @@ namespace FanCtrl
         {
             Interop.SERVICE_STATUS serviceStatus = new Interop.SERVICE_STATUS();
 
-            IntPtr hSCManager = Interop.OpenSCManager(null, null, (uint)Interop.SCM_ACCESS.SC_MANAGER_ALL_ACCESS);
+            IntPtr hSCManager = Interop.OpenSCManagerW(null, null, (uint)Interop.SCM_ACCESS.SC_MANAGER_CONNECT);
 
             if (hSCManager != IntPtr.Zero)
             {
-                IntPtr hService = Interop.OpenService(hSCManager, "BZHDELLSMMIO", Interop.SERVICE_ALL_ACCESS);
+                IntPtr hService = Interop.OpenServiceW(hSCManager, "BZHDELLSMMIO", Interop.SERVICE_STOP);
 
                 Interop.CloseServiceHandle(hSCManager);
 

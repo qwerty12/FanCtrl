@@ -107,14 +107,14 @@ namespace DellFanControl
         [DllImport("kernel32.dll")]
         public static extern uint GetLastError();
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        public static extern IntPtr CreateFile(
-            String lpFileName,
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true)]
+        public static extern IntPtr CreateFileW(
+            string lpFileName,
             uint dwDesiredAccess,
-            int dwShareMode,
+            uint dwShareMode,
             IntPtr lpSecurityAttributes,
-            int dwCreationDisposition,
-            int dwFlagsAndAttributes,
+            uint dwCreationDisposition,
+            uint dwFlagsAndAttributes,
             IntPtr hTemplateFile
         );
 
@@ -165,6 +165,7 @@ namespace DellFanControl
         public const int SERVICE_ERROR_NORMAL = 0x00000001;
         public const int SERVICE_ERROR_IGNORE = 0x00000000;
 
+        public const int DELETE = 0x00010000;
         public const int FILE_SHARE_READ = 0x00000001;
         public const int FILE_SHARE_WRITE = 0x00000002;
         public const int FILE_SHARE_DELETE = 0x00000004;
@@ -182,7 +183,7 @@ namespace DellFanControl
         public static extern bool CloseHandle(IntPtr hHandle);
 
         [DllImport("advapi32.dll", EntryPoint = "OpenSCManagerW", ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern IntPtr OpenSCManager(
+        public static extern IntPtr OpenSCManagerW(
             string machineName,
             string databaseName,
             uint dwAccess
@@ -194,33 +195,33 @@ namespace DellFanControl
         ]
         public static extern bool CloseServiceHandle(IntPtr hSCObject);
 
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        public static extern IntPtr OpenService(
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true)]
+        public static extern IntPtr OpenServiceW(
             IntPtr hSCManager,
             string lpServiceName,
             uint dwDesiredAccess
         );
 
-        [DllImport("advapi32.dll", SetLastError = true)]
+        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
         [
             return: MarshalAs(UnmanagedType.Bool)
         ]
-        public static extern bool StartService(
+        public static extern bool StartServiceW(
             IntPtr hService,
             int dwNumServiceArgs,
             string[] lpServiceArgVectors
         );
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern Boolean QueryServiceConfig(IntPtr hService, IntPtr intPtrQueryConfig, UInt32 cbBufSize, out UInt32 pcbBytesNeeded);
+        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
+        public static extern Boolean QueryServiceConfigW(IntPtr hService, IntPtr intPtrQueryConfig, UInt32 cbBufSize, out UInt32 pcbBytesNeeded);
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern Boolean QueryServiceConfig(IntPtr hService, QUERY_SERVICE_CONFIG lpServiceConfig, UInt32 cbBufSize, out UInt32 pcbBytesNeeded);
+        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
+        public static extern Boolean QueryServiceConfigW(IntPtr hService, QUERY_SERVICE_CONFIG lpServiceConfig, UInt32 cbBufSize, out UInt32 pcbBytesNeeded);
 
         public const int ERROR_INSUFFICIENT_BUFFER = 122;
 
-        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        public static extern IntPtr CreateService(
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true)]
+        public static extern IntPtr CreateServiceW(
             IntPtr hSCManager,
             string lpServiceName,
             string lpDisplayName,
@@ -230,7 +231,7 @@ namespace DellFanControl
             uint dwErrorControl,
             string lpBinaryPathName,
             string lpLoadOrderGroup,
-            string lpdwTagId,
+            IntPtr lpdwTagId,
             string lpDependencies,
             string lpServiceStartName,
             string lpPassword
@@ -249,7 +250,7 @@ namespace DellFanControl
             public uint stat2;
         }
 
-        [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true, CharSet = CharSet.Auto)]
+        [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool DeviceIoControl(
             IntPtr hDevice,
             uint dwIoControlCode,

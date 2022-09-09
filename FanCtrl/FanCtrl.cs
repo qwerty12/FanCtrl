@@ -91,9 +91,7 @@ namespace FanCtrl
             {
                 if (!io.BDSID_InstallDriver() || !io.BDSID_StartDriver() || !io.Open())
                 {
-                    startTries--;
-
-                    if (startTries == 0)
+                    if (--startTries == 0)
                         Stop();
 
                     return;
