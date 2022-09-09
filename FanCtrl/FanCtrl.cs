@@ -189,11 +189,15 @@ namespace FanCtrl
 
         protected override void OnStop()
         {
-            host.Close();
+            host.Abort();
+            try
+            {
+                host.Close();
+            }
+            catch { }
             timer.Stop();
             DisableManualFanControl();
             io.BDSID_Shutdown();
-
             try
             {
                 computer.Close();
