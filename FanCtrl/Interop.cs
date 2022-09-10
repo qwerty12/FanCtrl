@@ -104,9 +104,6 @@ namespace DellFanControl
             ref SERVICE_STATUS lpServiceStatus
         );
 
-        [DllImport("kernel32.dll")]
-        public static extern uint GetLastError();
-
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern IntPtr CreateFileW(
             string lpFileName,

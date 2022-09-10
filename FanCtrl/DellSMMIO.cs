@@ -9,7 +9,7 @@ namespace FanCtrl
 {
     public class DellSMMIO : IDisposable
     {
-        IntPtr hDriver;
+        IntPtr hDriver = Interop.INVALID_HANDLE_VALUE;
 
         public const uint DELL_SMM_IO_FAN1 = 0;
         public const uint DELL_SMM_IO_FAN2 = 1;
@@ -40,6 +40,8 @@ namespace FanCtrl
         private readonly Process thisProcess = Process.GetCurrentProcess();
         private readonly IntPtr defaultProcessAffinity = Process.GetCurrentProcess().ProcessorAffinity;
 
+        public const string driverName = "BZHDELLSMMIO";
+
         public bool BDSID_InstallDriver()
         {
             BDSID_RemoveDriver();
@@ -50,13 +52,13 @@ namespace FanCtrl
 
             IntPtr hService = Interop.CreateServiceW(
                 hSCManager,
-                "BZHDELLSMMIO",
-                "BZHDELLSMMIO",
+                driverName,
+                driverName,
                 Interop.SERVICE_ALL_ACCESS,
                 Interop.SERVICE_KERNEL_DRIVER,
                 Interop.SERVICE_DEMAND_START,
                 Interop.SERVICE_ERROR_NORMAL,
-                this.getDriverPath(),
+                getDriverPath(),
                 null,
                 IntPtr.Zero,
                 null,
@@ -76,7 +78,7 @@ namespace FanCtrl
 
         public bool Open()
         {
-            hDriver = Interop.CreateFileW(@"\\?\global\globalroot\Device\BZHDELLSMMIO",
+            hDriver = Interop.CreateFileW(@"\\?\global\globalroot\DosDevices\BZHDELLSMMIO",
                     Interop.GENERIC_READ,
                     Interop.FILE_SHARE_READ,
                     IntPtr.Zero,
@@ -84,10 +86,10 @@ namespace FanCtrl
                     0,
                     IntPtr.Zero);
 
-            return hDriver != IntPtr.Zero;
+            return hDriver != Interop.INVALID_HANDLE_VALUE;
         }
 
-        public bool Opened => hDriver != IntPtr.Zero;
+        public bool Opened => hDriver != Interop.INVALID_HANDLE_VALUE;
 
         public bool BDSID_StartDriver()
         {
@@ -95,7 +97,7 @@ namespace FanCtrl
             if (hSCManager == IntPtr.Zero)
                 return false;
 
-            IntPtr hService = Interop.OpenServiceW(hSCManager, "BZHDELLSMMIO", Interop.SERVICE_START);
+            IntPtr hService = Interop.OpenServiceW(hSCManager, driverName, Interop.SERVICE_START);
 
             Interop.CloseServiceHandle(hSCManager);
 
@@ -159,7 +161,7 @@ namespace FanCtrl
                 return false;
             }
 
-            IntPtr hService = Interop.OpenServiceW(hSCManager, "BZHDELLSMMIO", Interop.SERVICE_QUERY_CONFIG | Interop.DELETE);
+            IntPtr hService = Interop.OpenServiceW(hSCManager, driverName, Interop.SERVICE_QUERY_CONFIG | Interop.DELETE);
             Interop.CloseServiceHandle(hSCManager);
 
             if (hService == IntPtr.Zero)
@@ -169,16 +171,16 @@ namespace FanCtrl
 
             bool bResult = Interop.QueryServiceConfigW(hService, IntPtr.Zero, 0, out uint dwBytesNeeded);
 
-            if (Interop.GetLastError() == Interop.ERROR_INSUFFICIENT_BUFFER)
+            if (Marshal.GetLastWin32Error() == Interop.ERROR_INSUFFICIENT_BUFFER)
             {
                 uint cbBufSize = dwBytesNeeded;
-                IntPtr ptr = Marshal.AllocCoTaskMem((int)dwBytesNeeded);
+                IntPtr ptr = Marshal.AllocHGlobal((int)dwBytesNeeded);
 
                 bResult = Interop.QueryServiceConfigW(hService, ptr, cbBufSize, out dwBytesNeeded);
 
                 if (!bResult)
                 {
-                    Marshal.FreeCoTaskMem(ptr);
+                    Marshal.FreeHGlobal(ptr);
                     Interop.CloseServiceHandle(hService);
                     return false;
                 }
@@ -191,7 +193,7 @@ namespace FanCtrl
                     bResult = Interop.DeleteService(hService);
                 }
 
-                Marshal.FreeCoTaskMem(ptr);
+                Marshal.FreeHGlobal(ptr);
             }
 
             Interop.CloseServiceHandle(hService);
@@ -208,7 +210,7 @@ namespace FanCtrl
             if (hSCManager == IntPtr.Zero)
                 return false;
 
-            IntPtr hService = Interop.OpenServiceW(hSCManager, "BZHDELLSMMIO", Interop.SERVICE_STOP);
+            IntPtr hService = Interop.OpenServiceW(hSCManager, driverName, Interop.SERVICE_STOP);
 
             Interop.CloseServiceHandle(hSCManager);
 
@@ -224,7 +226,10 @@ namespace FanCtrl
         public void Close()
         {
             if (hDriver != Interop.INVALID_HANDLE_VALUE)
-                Interop.CloseHandle(this.hDriver);
+            {
+                Interop.CloseHandle(hDriver);
+                hDriver = Interop.INVALID_HANDLE_VALUE;
+            }
         }
         public bool BDSID_Shutdown()
         {
@@ -232,9 +237,18 @@ namespace FanCtrl
             return BDSID_RemoveDriver();
         }
 
-        public string getDriverPath()
+        public static string getDriverPath()
         {
-            return System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\bzh_dell_smm_io_x64.sys";
+            string exeDirname;
+            try
+            {
+                exeDirname = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            }
+            catch
+            {
+                exeDirname = System.IO.Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+            }
+            return exeDirname + "\\bzh_dell_smm_io_x64.sys";
         }
 
         public void Dispose()
