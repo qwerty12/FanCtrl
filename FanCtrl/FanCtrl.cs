@@ -3,13 +3,13 @@ using System;
 using System.Diagnostics;
 using System.ServiceModel;
 using System.ServiceProcess;
-using System.Timers;
+using Timer = System.Timers.Timer;
 using LibreHardwareMonitor.Hardware;
 
 namespace FanCtrl
 {
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
-    public partial class FanCtrl : ServiceBase, IFanCtrlInterface
+    public class FanCtrl : ServiceBase, IFanCtrlInterface
     {
         DellSMMIO io;
         Timer timer;
@@ -18,8 +18,9 @@ namespace FanCtrl
 
         public FanCtrl()
         {
-            ServiceName = "FanCtrl";
             CanHandlePowerEvent = true;
+            //CanShutdown = true;
+            ServiceName = "FanCtrl";
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
 
             io = new DellSMMIO();
@@ -39,15 +40,15 @@ namespace FanCtrl
             timer.Interval = 1000;
             timer.Elapsed += Timer_Elapsed;
 
-            host = new ServiceHost(this, new Uri[] { new Uri("net.pipe://localhost") });
+            host = new ServiceHost(this, new Uri("net.pipe://localhost"));
             host.AddServiceEndpoint(typeof(IFanCtrlInterface), new NetNamedPipeBinding(NetNamedPipeSecurityMode.None), "FanCtrlInterface");
         }
 
         uint fanlvl = uint.MaxValue;
         uint maxTemp;
         ushort startTries = 5;
-        ushort ticksToSkip = 0;
-        ushort ticksToSkip2 = 0;
+        ushort ticksToSkip;
+        ushort ticksToSkip2;
         bool _level2forced = false;
         const uint lv2MaxTemp = 65;
 
@@ -76,7 +77,7 @@ namespace FanCtrl
                     if ((hardware.HardwareType == HardwareType.Cpu && sensor.Name.Length != 11) || (hardware.HardwareType == HardwareType.Storage && sensor.Index != 0))
                         continue;
 
-                    if (val >= lv2MaxTemp) // short-circuit eval
+                    if (val >= lv2MaxTemp) // short-circuit
                         return val;
                     result = val;
                 }
@@ -104,13 +105,13 @@ namespace FanCtrl
 
             maxTemp = MaxTemperature();
 
-            if(maxTemp == 0)
+            if (maxTemp == 0)
             {
                 //Something is very wrong
                 Stop();
                 return;
             }
-            else if(maxTemp >= lv2MaxTemp)
+            else if (maxTemp >= lv2MaxTemp)
             {
                 ticksToSkip = 5;
                 ticksToSkip2 = 30;
@@ -159,8 +160,6 @@ namespace FanCtrl
                     if (io.Opened)
                         EnableManualFanControl();
                     OnStart(null);
-                    break;
-                default:
                     break;
             }
 

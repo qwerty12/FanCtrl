@@ -26,7 +26,7 @@ namespace FanCtrlTray
         static SolidBrush brush;
         static Graphics graph;
 
-        static void Main(string[] args)
+        static void Main()
         {
 #if DEBUG
             WinConsole.Initialize();
@@ -65,8 +65,8 @@ namespace FanCtrlTray
             graph.SmoothingMode = SmoothingMode.HighSpeed;
             graph.TextRenderingHint = TextRenderingHint.SingleBitPerPixelGridFit;
 
-            adaptTrayIconForTheme();
-            var themeChangeListener = new ThemeBollocks(icon, adaptTrayIconForTheme);
+            AdaptTrayIconForTheme();
+            var themeChangeListener = new ThemeBollocks(icon, AdaptTrayIconForTheme);
 
             uint lastFanSpeed = 0;
             uint counter = 0;
@@ -98,10 +98,7 @@ namespace FanCtrlTray
                             }
                         }
 
-                        if (d.SystemTemperature < 100)
-                            txt = d.SystemTemperature.ToString();
-                        else
-                            txt = "!";
+                        txt = d.SystemTemperature < 100 ? d.SystemTemperature.ToString() : "!";
 
                         fanlvl = Math.Min(d.FanLevel, 2);
 
@@ -168,7 +165,7 @@ namespace FanCtrlTray
             }
         }
 
-        private static void adaptTrayIconForTheme()
+        private static void AdaptTrayIconForTheme()
         {
             if (ThemeBollocks.IsTaskbarDark())
             {

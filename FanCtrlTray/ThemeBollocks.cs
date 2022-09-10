@@ -11,15 +11,15 @@ namespace FanCtrlTray
                           WM_THEMECHANGED = 0x031A,
                           WM_SETTINGCHANGE = 0x001A;
         private Action ThemeChangedCallback;
-        private readonly System.Windows.Forms.Timer t = new System.Windows.Forms.Timer();
+        private readonly Timer t = new Timer();
 
         public ThemeBollocks(NotifyIcon parent, Action fnThemeChangedCallback)
         {
             ThemeChangedCallback = fnThemeChangedCallback;
             t.Interval = 1000;
-            t.Tick += new EventHandler(OnTimerTick);
+            t.Tick += OnTimerTick;
             AssignHandle(NotifyIconHelper.GetHandle(parent));
-            parent.Disposed += new EventHandler(this.OnHandleDestroyed);
+            parent.Disposed += this.OnHandleDestroyed;
         }
 
         ~ThemeBollocks()

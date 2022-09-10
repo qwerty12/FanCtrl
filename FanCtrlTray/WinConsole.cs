@@ -9,29 +9,29 @@ namespace FanCtrlTray
     // Pavlo K: https://stackoverflow.com/a/48864902
     internal static class WinConsole
     {
-        static public void Initialize(bool alwaysCreateNewConsole = true)
+        public static void Initialize(bool alwaysCreateNewConsole = true)
         {
             if (alwaysCreateNewConsole
                 || (AttachConsole(ATTACH_PARENT_PROCESS)
                 && Marshal.GetLastWin32Error() != ERROR_ACCESS_DENIED))
             {
-                if (AllocConsole())
-                {
-                    InitializeOutStream();
-                    InitializeInStream();
-                }
+                if (!AllocConsole())
+                    return;
+
+                InitializeOutStream();
+                InitializeInStream();
             }
         }
 
         private static void InitializeOutStream()
         {
             var fs = CreateFileStream("CONOUT$", GENERIC_WRITE, FILE_SHARE_WRITE, FileAccess.Write);
-            if (fs != null)
-            {
-                var writer = new StreamWriter(fs) { AutoFlush = true };
-                Console.SetOut(writer);
-                Console.SetError(writer);
-            }
+            if (fs == null)
+                return;
+
+            var writer = new StreamWriter(fs) { AutoFlush = true };
+            Console.SetOut(writer);
+            Console.SetError(writer);
         }
 
         private static void InitializeInStream()
@@ -47,14 +47,13 @@ namespace FanCtrlTray
                                 FileAccess dotNetFileAccess)
         {
             var file = new SafeFileHandle(CreateFileW(name, win32DesiredAccess, win32ShareMode, IntPtr.Zero, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, IntPtr.Zero), true);
-            if (!file.IsInvalid)
-            {
-                var fs = new FileStream(file, dotNetFileAccess);
-                return fs;
-            }
-            return null;
+            if (file.IsInvalid)
+                return null;
+
+            var fs = new FileStream(file, dotNetFileAccess);
+            return fs;
         }
 
-        private const UInt32 ATTACH_PARENT_PROCESS = 0xFFFFFFFF;
+        private const uint ATTACH_PARENT_PROCESS = 0xFFFFFFFF;
     }
 }

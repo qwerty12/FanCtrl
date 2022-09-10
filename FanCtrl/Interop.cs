@@ -19,23 +19,23 @@ namespace DellFanControl
         [StructLayout(LayoutKind.Sequential)]
         public class QUERY_SERVICE_CONFIG
         {
-            [MarshalAs(System.Runtime.InteropServices.UnmanagedType.U4)]
+            [MarshalAs(UnmanagedType.U4)]
             public UInt32 dwServiceType;
-            [MarshalAs(System.Runtime.InteropServices.UnmanagedType.U4)]
+            [MarshalAs(UnmanagedType.U4)]
             public UInt32 dwStartType;
-            [MarshalAs(System.Runtime.InteropServices.UnmanagedType.U4)]
+            [MarshalAs(UnmanagedType.U4)]
             public UInt32 dwErrorControl;
-            [MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPWStr)]
+            [MarshalAs(UnmanagedType.LPWStr)]
             public String lpBinaryPathName;
-            [MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPWStr)]
+            [MarshalAs(UnmanagedType.LPWStr)]
             public String lpLoadOrderGroup;
-            [MarshalAs(System.Runtime.InteropServices.UnmanagedType.U4)]
+            [MarshalAs(UnmanagedType.U4)]
             public UInt32 dwTagID;
-            [MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPWStr)]
+            [MarshalAs(UnmanagedType.LPWStr)]
             public String lpDependencies;
-            [MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPWStr)]
+            [MarshalAs(UnmanagedType.LPWStr)]
             public String lpServiceStartName;
-            [MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPWStr)]
+            [MarshalAs(UnmanagedType.LPWStr)]
             public String lpDisplayName;
         };
 
