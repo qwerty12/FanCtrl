@@ -18,6 +18,7 @@ namespace FanCtrlTray
         static bool run = true;
         static bool getFanSpeed = false;
         static IFanCtrlInterface interf = null;
+        static ToolStripMenuItem rpmItem = null;
         static ToolStripMenuItem forceItem = null;
         static ToolStripItem exitItem = null;
         static Process thisProcess = Process.GetCurrentProcess();
@@ -36,13 +37,14 @@ namespace FanCtrlTray
 
             ContextMenuStrip strip = new ContextMenuStrip();
 
-            ToolStripMenuItem rpmItem = (ToolStripMenuItem)strip.Items.Add("Fan0: 0 RPM");
+            rpmItem = (ToolStripMenuItem)strip.Items.Add("Fan0: _ RPM");
             //rpmItem.Enabled = false;
             forceItem = (ToolStripMenuItem)strip.Items.Add("Force full speed");
             strip.Items.Add("-");
             exitItem = strip.Items.Add("Exit");
             strip.Opening += Strip_Opening;
             strip.Closing += Strip_Closing;
+            strip.Closed += Strip_Closed;
             strip.ItemClicked += Strip_ItemClicked;
 
             NotifyIcon icon = new NotifyIcon();
@@ -150,6 +152,11 @@ namespace FanCtrlTray
         {
             getFanSpeed = false;
             thisProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
+        }
+
+        private static void Strip_Closed(object sender, ToolStripDropDownClosedEventArgs e)
+        {
+            rpmItem.Text = "Fan0: _ RPM";
         }
 
         private static void Strip_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
