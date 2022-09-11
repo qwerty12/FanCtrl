@@ -8,6 +8,7 @@ using LibreHardwareMonitor.Hardware;
 
 namespace FanCtrl
 {
+    [System.ComponentModel.DesignerCategory("Code")]
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     public class FanCtrl : ServiceBase, IFanCtrlInterface
     {
@@ -27,7 +28,7 @@ namespace FanCtrl
             computer = new Computer
             {
                 IsCpuEnabled = true,
-                IsStorageEnabled = true,
+                IsStorageEnabled = false,
                 IsGpuEnabled = false,
                 IsMemoryEnabled = false,
                 IsMotherboardEnabled = false,
@@ -58,9 +59,6 @@ namespace FanCtrl
 
             foreach (IHardware hardware in computer.Hardware)
             {
-                if (hardware.HardwareType == HardwareType.Storage && hardware.Name.StartsWith("Samsung"))
-                    continue;
-
                 hardware.Update();
 
                 foreach (ISensor sensor in hardware.Sensors)
@@ -74,7 +72,7 @@ namespace FanCtrl
                         continue;
 
                     // "CPU Core #x" / "CPU Package"
-                    if ((hardware.HardwareType == HardwareType.Cpu && sensor.Name.Length != 11) || (hardware.HardwareType == HardwareType.Storage && sensor.Index != 0))
+                    if (hardware.HardwareType == HardwareType.Cpu && sensor.Name.Length != 11)
                         continue;
 
                     if (val >= lv2MaxTemp) // short-circuit
