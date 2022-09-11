@@ -24,7 +24,9 @@ namespace FanCtrl
             ServiceName = "FanCtrl";
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
 
-            io = new DellSMMIO();
+            DellSMMIO.StopService("R0FanCtrl");
+            DellSMMIO.RemoveService("R0FanCtrl", false);
+
             computer = new Computer
             {
                 IsCpuEnabled = true,
@@ -37,6 +39,8 @@ namespace FanCtrl
                 IsBatteryEnabled = false,
                 IsPsuEnabled = false
             };
+            io = new DellSMMIO();
+
             timer = new Timer();
             timer.Interval = 1000;
             timer.Elapsed += Timer_Elapsed;
@@ -188,19 +192,20 @@ namespace FanCtrl
 
         protected override void OnStop()
         {
+            timer.Stop();
+            DisableManualFanControl();
+            try
+            {
+                computer.Close();
+            }
+            catch { }
+            io.BDSID_Shutdown();
             host.Abort();
             try
             {
                 host.Close();
             }
             catch { }
-            timer.Stop();
-            DisableManualFanControl();
-            io.BDSID_Shutdown();
-            try
-            {
-                computer.Close();
-            } catch {}
         }
 
         public FanCtrlData GetData()

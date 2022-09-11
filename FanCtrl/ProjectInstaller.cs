@@ -13,7 +13,7 @@ namespace FanCtrl
         }
         protected override void OnAfterUninstall(IDictionary savedState)
         {
-            new DellSMMIO().BDSID_RemoveDriver();
+            DellSMMIO.BDSID_RemoveDriver();
             base.OnAfterUninstall(savedState);
         }
         protected override void OnAfterInstall(IDictionary savedState)

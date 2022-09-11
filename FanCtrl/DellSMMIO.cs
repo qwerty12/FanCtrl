@@ -150,10 +150,8 @@ namespace FanCtrl
             return status_dic ? cam.cmd : 0;
         }
 
-        public bool BDSID_RemoveDriver()
+        public static bool RemoveService(string svcName, bool onlyIfOnDemand)
         {
-            BDSID_StopDriver();
-
             IntPtr hSCManager = Interop.OpenSCManagerW(null, null, (uint)Interop.SCM_ACCESS.SC_MANAGER_CONNECT);
 
             if (hSCManager == IntPtr.Zero)
@@ -161,7 +159,7 @@ namespace FanCtrl
                 return false;
             }
 
-            IntPtr hService = Interop.OpenServiceW(hSCManager, driverName, Interop.SERVICE_QUERY_CONFIG | Interop.DELETE);
+            IntPtr hService = Interop.OpenServiceW(hSCManager, svcName, Interop.DELETE | (uint)(onlyIfOnDemand ? Interop.SERVICE_QUERY_CONFIG : 0));
             Interop.CloseServiceHandle(hSCManager);
 
             if (hService == IntPtr.Zero)
@@ -169,31 +167,39 @@ namespace FanCtrl
                 return false;
             }
 
-            bool bResult = Interop.QueryServiceConfigW(hService, IntPtr.Zero, 0, out uint dwBytesNeeded);
-
-            if (Marshal.GetLastWin32Error() == Interop.ERROR_INSUFFICIENT_BUFFER)
+            bool bResult;
+            if (onlyIfOnDemand)
             {
-                uint cbBufSize = dwBytesNeeded;
-                IntPtr ptr = Marshal.AllocHGlobal((int)dwBytesNeeded);
+                bResult = Interop.QueryServiceConfigW(hService, IntPtr.Zero, 0, out uint dwBytesNeeded);
 
-                bResult = Interop.QueryServiceConfigW(hService, ptr, cbBufSize, out dwBytesNeeded);
-
-                if (!bResult)
+                if (Marshal.GetLastWin32Error() == Interop.ERROR_INSUFFICIENT_BUFFER)
                 {
+                    IntPtr ptr = Marshal.AllocHGlobal((int)dwBytesNeeded);
+
+                    bResult = Interop.QueryServiceConfigW(hService, ptr, dwBytesNeeded, out _);
+
+                    if (!bResult)
+                    {
+                        Marshal.FreeHGlobal(ptr);
+                        Interop.CloseServiceHandle(hService);
+                        return false;
+                    }
+
+                    var pServiceConfig =
+                        (Interop.QUERY_SERVICE_CONFIG)Marshal.PtrToStructure(ptr, typeof(Interop.QUERY_SERVICE_CONFIG));
+
+                    // If service is set to load automatically, don't delete it!
+                    if (pServiceConfig.dwStartType == Interop.SERVICE_DEMAND_START)
+                    {
+                        bResult = Interop.DeleteService(hService);
+                    }
+
                     Marshal.FreeHGlobal(ptr);
-                    Interop.CloseServiceHandle(hService);
-                    return false;
                 }
-
-                var pServiceConfig = (Interop.QUERY_SERVICE_CONFIG)Marshal.PtrToStructure(ptr, typeof(Interop.QUERY_SERVICE_CONFIG));
-
-                // If service is set to load automatically, don't delete it!
-                if (pServiceConfig.dwStartType == Interop.SERVICE_DEMAND_START)
-                {
-                    bResult = Interop.DeleteService(hService);
-                }
-
-                Marshal.FreeHGlobal(ptr);
+            }
+            else
+            {
+                bResult = Interop.DeleteService(hService);
             }
 
             Interop.CloseServiceHandle(hService);
@@ -201,7 +207,7 @@ namespace FanCtrl
             return bResult;
         }
 
-        public bool BDSID_StopDriver()
+        public static bool StopService(string svcName)
         {
             Interop.SERVICE_STATUS serviceStatus = new Interop.SERVICE_STATUS();
 
@@ -210,7 +216,7 @@ namespace FanCtrl
             if (hSCManager == IntPtr.Zero)
                 return false;
 
-            IntPtr hService = Interop.OpenServiceW(hSCManager, driverName, Interop.SERVICE_STOP);
+            IntPtr hService = Interop.OpenServiceW(hSCManager, svcName, Interop.SERVICE_STOP);
 
             Interop.CloseServiceHandle(hSCManager);
 
@@ -221,6 +227,17 @@ namespace FanCtrl
             Interop.CloseServiceHandle(hService);
 
             return true;
+        }
+
+        public static bool BDSID_RemoveDriver()
+        {
+            BDSID_StopDriver();
+            return RemoveService(driverName, true);
+        }
+
+        public static bool BDSID_StopDriver()
+        {
+            return StopService(driverName);
         }
 
         public void Close()
