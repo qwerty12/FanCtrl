@@ -1,10 +1,12 @@
 ﻿using FanCtrlCommon;
 using System;
 using System.Diagnostics;
+using System.Reflection;
 using System.ServiceModel;
 using System.ServiceProcess;
 using Timer = System.Timers.Timer;
 using LibreHardwareMonitor.Hardware;
+using LibreHardwareMonitor.Hardware.Storage;
 
 namespace FanCtrl
 {
@@ -43,6 +45,7 @@ namespace FanCtrl
                 IsBatteryEnabled = false,
                 IsPsuEnabled = false
             };
+            initNvmeHd0Monitoring();
             io = new DellSMMIO();
 
             timer = new Timer();
@@ -60,6 +63,49 @@ namespace FanCtrl
         ushort ticksToSkip2;
         bool _level2forced = false;
         const uint lv2MaxTemp = 65;
+
+        NVMeSmart nvme0;
+        private void initNvmeHd0Monitoring()
+        {
+            /* Yes, this is a hack using Reflection that may break if LHM is updated.
+               I would still rather use this. Why?
+
+               * There's no point in copying large swathes of LHM code when I'm already using it
+               * I make it a point to avoid WMI when dealing with the local machine where possible,
+                 which is why AbstractStorage.CreateInstance is avoided (and, indeed, IsStorageEnabled)
+               * I only need the temperature of one drive
+             */
+            const string deviceId = @"\\.\PHYSICALDRIVE0";
+            const uint driveIndex = 0;
+
+            try
+            {
+                var WindowsStorage =
+                    Type.GetType(
+                        $"LibreHardwareMonitor.Hardware.Storage.WindowsStorage, {typeof(NVMeSmart).Assembly.FullName}");
+
+                var GetStorageInfo = WindowsStorage.GetMethod("GetStorageInfo", BindingFlags.Public | BindingFlags.Static);
+
+                var storageInfo = GetStorageInfo.Invoke(null, new object[] { deviceId, driveIndex });
+                storageInfo.GetType().GetProperty("DeviceId", BindingFlags.Public | BindingFlags.Instance)
+                    .SetValue(storageInfo, deviceId);
+
+                nvme0 = Activator.CreateInstance(typeof(NVMeSmart), BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { storageInfo }, null) as NVMeSmart;
+                if (nvme0 == null)
+                    return;
+                if (!nvme0.IsValid)
+                    nvme0 = null;
+            }
+            catch (Exception e)
+            {
+                nvme0 = null;
+#if DEBUG
+                Serilog.Log.Error(e, "Monitoring temperature of NVMe SSD 0 failed");
+#endif
+                _ = e;
+            }
+
+        }
 
         private uint MaxTemperature()
         {
@@ -82,13 +128,29 @@ namespace FanCtrl
                         continue;
 
                     // "CPU Core #x" / "CPU Package"
-                    if (hardware.HardwareType == HardwareType.Cpu && sensor.Name.Length != 11)
+                    if (sensor.Name.Length != 11)
                         continue;
 
                     if (val >= lv2MaxTemp) // short-circuit
                         return val;
                     result = val;
                 }
+            }
+
+            if (result == 0)
+                return 0;
+
+            NVMeHealthInfo health = nvme0?.GetHealthInfo();
+            if (health == null)
+                return result;
+            var temperature = health.Temperature;
+            if (temperature > 0 && temperature < 1000)
+            {
+#if DEBUG
+                Serilog.Log.Information("NVME temp (deg. C): {temperature}", temperature);
+#endif
+                if (temperature > result)
+                    result = (uint) temperature;
             }
 
             return result;
@@ -248,6 +310,7 @@ namespace FanCtrl
             {
                 timer.Dispose();
                 io.Dispose();
+                nvme0?.Dispose();
             }
             base.Dispose(disposing);
         }
