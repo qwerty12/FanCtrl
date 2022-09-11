@@ -24,6 +24,10 @@ namespace FanCtrl
             ServiceName = "FanCtrl";
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
 
+#if DEBUG
+            Serilog.Log.Information("{ServiceName} starting", ServiceName);
+#endif
+
             DellSMMIO.StopService("R0FanCtrl");
             DellSMMIO.RemoveService("R0FanCtrl", false);
 
@@ -70,7 +74,9 @@ namespace FanCtrl
                     if (sensor.SensorType != SensorType.Temperature || !sensor.Value.HasValue)
                         continue;
 
-                    //Debug.WriteLine("Sensor: {0} ({2}), value: {1}", sensor.Name, sensor.Value.Value, hardware.Name);
+#if DEBUG
+                    Serilog.Log.Debug("Sensor: {0} ({2}), value: {1}", sensor.Name, sensor.Value.Value, hardware.Name);
+#endif
                     uint val = (uint)sensor.Value;
                     if (val <= result)
                         continue;
