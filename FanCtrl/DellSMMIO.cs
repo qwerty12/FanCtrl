@@ -9,7 +9,7 @@ namespace FanCtrl
 {
     public class DellSMMIO : IDisposable
     {
-        IntPtr hDriver = Interop.INVALID_HANDLE_VALUE;
+        private IntPtr hDriver = Interop.INVALID_HANDLE_VALUE;
 
         public const uint DELL_SMM_IO_FAN1 = 0;
         public const uint DELL_SMM_IO_FAN2 = 1;
@@ -63,7 +63,7 @@ namespace FanCtrl
                 null,
                 null,
                 null
-            );
+                                                    );
 
             Interop.CloseServiceHandle(hSCManager);
 
@@ -78,12 +78,12 @@ namespace FanCtrl
         public bool Open()
         {
             hDriver = Interop.CreateFileW(@"\\?\global\globalroot\DosDevices\BZHDELLSMMIO",
-                    Interop.GENERIC_READ,
-                    Interop.FILE_SHARE_READ,
-                    IntPtr.Zero,
-                    Interop.OPEN_EXISTING,
-                    0,
-                    IntPtr.Zero);
+                      Interop.GENERIC_READ,
+                      Interop.FILE_SHARE_READ,
+                      IntPtr.Zero,
+                      Interop.OPEN_EXISTING,
+                      0,
+                      IntPtr.Zero);
 
             return hDriver != Interop.INVALID_HANDLE_VALUE;
         }
@@ -245,6 +245,7 @@ namespace FanCtrl
                 hDriver = Interop.INVALID_HANDLE_VALUE;
             }
         }
+
         public bool BDSID_Shutdown()
         {
             Close();

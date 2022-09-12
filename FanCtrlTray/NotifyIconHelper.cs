@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Reflection;
-using System.Windows.Forms;
-using System.Runtime.InteropServices;
 using System.Drawing;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using static FanCtrlTray.NativeMethods;
 
 namespace FanCtrlTray
@@ -10,7 +10,6 @@ namespace FanCtrlTray
     // Karsten: https://stackoverflow.com/a/26695961
     internal static class NotifyIconHelper
     {
-
         public static Rectangle GetIconRect(NotifyIcon icon)
         {
             RECT rect = new RECT();
@@ -27,6 +26,7 @@ namespace FanCtrlTray
         }
 
         private static readonly FieldInfo windowField = typeof(NotifyIcon).GetField("window", BindingFlags.NonPublic | BindingFlags.Instance);
+
         public static IntPtr GetHandle(NotifyIcon icon)
         {
             if (windowField == null)
@@ -37,6 +37,7 @@ namespace FanCtrlTray
         }
 
         private static readonly FieldInfo idField = typeof(NotifyIcon).GetField("id", BindingFlags.NonPublic | BindingFlags.Instance);
+
         public static uint GetId(NotifyIcon icon)
         {
             if (idField == null)
@@ -44,6 +45,5 @@ namespace FanCtrlTray
 
             return (uint)idField.GetValue(icon);
         }
-
     }
 }

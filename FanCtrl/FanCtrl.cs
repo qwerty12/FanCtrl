@@ -1,12 +1,12 @@
-﻿using FanCtrlCommon;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.ServiceModel;
 using System.ServiceProcess;
-using Timer = System.Timers.Timer;
+using FanCtrlCommon;
 using LibreHardwareMonitor.Hardware;
 using LibreHardwareMonitor.Hardware.Storage;
+using Timer = System.Timers.Timer;
 
 namespace FanCtrl
 {
@@ -14,10 +14,10 @@ namespace FanCtrl
     [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     public class FanCtrl : ServiceBase, IFanCtrlInterface
     {
-        DellSMMIO io;
-        Timer timer;
-        ServiceHost host;
-        Computer computer;
+        private readonly DellSMMIO io;
+        private readonly Timer timer;
+        private readonly ServiceHost host;
+        private readonly Computer computer;
 
         public FanCtrl()
         {
@@ -48,23 +48,26 @@ namespace FanCtrl
             initNvmeHd0Monitoring();
             io = new DellSMMIO();
 
-            timer = new Timer();
-            timer.Interval = 1000;
+            timer = new Timer
+            {
+                Interval = 1000
+            };
             timer.Elapsed += Timer_Elapsed;
 
             host = new ServiceHost(this, new Uri("net.pipe://localhost"));
             host.AddServiceEndpoint(typeof(IFanCtrlInterface), new NetNamedPipeBinding(NetNamedPipeSecurityMode.None), "FanCtrlInterface");
         }
 
-        uint fanlvl = uint.MaxValue;
-        uint maxTemp;
-        ushort startTries = 5;
-        ushort ticksToSkip;
-        ushort ticksToSkip2;
-        bool _level2forced = false;
-        const uint lv2MaxTemp = 65;
+        private uint fanlvl = uint.MaxValue;
+        private uint maxTemp;
+        private ushort startTries = 5;
+        private ushort ticksToSkip;
+        private ushort ticksToSkip2;
+        private bool _level2forced = false;
+        private const uint lv2MaxTemp = 65;
 
-        NVMeSmart nvme0;
+        private NVMeSmart nvme0;
+
         private void initNvmeHd0Monitoring()
         {
             /* Yes, this is a hack using Reflection that may break if LHM is updated.
@@ -104,7 +107,6 @@ namespace FanCtrl
 #endif
                 _ = e;
             }
-
         }
 
         private uint MaxTemperature()
@@ -150,7 +152,7 @@ namespace FanCtrl
                 Serilog.Log.Information("NVME temp (deg. C): {temperature}", temperature);
 #endif
                 if (temperature > result)
-                    result = (uint) temperature;
+                    result = (uint)temperature;
             }
 
             return result;
@@ -229,6 +231,7 @@ namespace FanCtrl
                     if (powerStatus == PowerBroadcastStatus.Suspend)
                         DisableManualFanControl();
                     break;
+
                 case PowerBroadcastStatus.QuerySuspendFailed:
                 case PowerBroadcastStatus.ResumeSuspend:
                     if (io.Opened)

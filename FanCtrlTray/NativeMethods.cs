@@ -1183,7 +1183,6 @@ namespace FanCtrlTray
             uint dwCreationDisposition,
             uint dwFlagsAndAttributes,
             IntPtr hTemplateFile
-         );
-
+                                               );
     }
 }

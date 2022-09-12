@@ -1,33 +1,33 @@
-﻿using FanCtrlCommon;
-using System;
-using System.Drawing;
-using System.ServiceModel;
-using System.Windows.Forms;
+﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
+using System.ServiceModel;
+using System.Windows.Forms;
+using FanCtrlCommon;
 
 namespace FanCtrlTray
 {
-    class Program
+    internal static class Program
     {
-        const int UpdateTime = 1000;
-        const int CycleTime = 50;
-        const int CyclesToWaste = (UpdateTime / CycleTime) - 1;
+        private const int UpdateTime = 1000;
+        private const int CycleTime = 50;
+        private const int CyclesToWaste = (UpdateTime / CycleTime) - 1;
 
-        static bool run = true;
-        static bool getFanSpeed = false;
-        static IFanCtrlInterface interf = null;
-        static ToolStripMenuItem rpmItem = null;
-        static ToolStripMenuItem forceItem = null;
-        static ToolStripItem exitItem = null;
-        static Process thisProcess = Process.GetCurrentProcess();
+        private static bool run = true;
+        private static bool getFanSpeed = false;
+        private static IFanCtrlInterface interf = null;
+        private static ToolStripMenuItem rpmItem = null;
+        private static ToolStripMenuItem forceItem = null;
+        private static ToolStripItem exitItem = null;
+        private static Process thisProcess = Process.GetCurrentProcess();
 
-        static Pen normalBorderPen;
-        static SolidBrush brush;
-        static Graphics graph;
+        private static Pen normalBorderPen;
+        private static SolidBrush brush;
 
-        static void Main()
+        [STAThread]
+        private static void Main()
         {
 #if DEBUG
             WinConsole.Initialize();
@@ -63,7 +63,7 @@ namespace FanCtrlTray
             brush = new SolidBrush(Color.White);
             Font font = new Font("Tahoma", FontSize, FontStyle.Regular, GraphicsUnit.Pixel);
             Bitmap bitmap = new Bitmap(width, height);
-            graph = Graphics.FromImage(bitmap);
+            Graphics graph = Graphics.FromImage(bitmap);
             graph.SmoothingMode = SmoothingMode.HighSpeed;
             graph.TextRenderingHint = TextRenderingHint.SingleBitPerPixelGridFit;
 
@@ -139,7 +139,7 @@ namespace FanCtrlTray
             {
                 pipeFactory.Close();
             }
-            catch {}
+            catch { }
         }
 
         private static void Strip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
@@ -185,6 +185,5 @@ namespace FanCtrlTray
                 brush.Color = Color.Black;
             }
         }
-
     }
 }

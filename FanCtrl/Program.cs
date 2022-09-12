@@ -1,16 +1,17 @@
 ﻿using System.ServiceProcess;
+
 #if DEBUG
 using Serilog;
 #endif
 
 namespace FanCtrl
 {
-    static class Program
+    internal static class Program
     {
         /// <summary>
         /// Punto di ingresso principale dell'applicazione.
         /// </summary>
-        static void Main()
+        private static void Main()
         {
 #if !DEBUG
             ServiceBase.Run(new FanCtrl());

@@ -5,9 +5,8 @@ using System.Runtime.InteropServices;
 
 namespace DellFanControl
 {
-    public class Interop
+    public static class Interop
     {
-
         public static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
 
         [DllImport("advapi32.dll", SetLastError = true)]
@@ -21,20 +20,28 @@ namespace DellFanControl
         {
             [MarshalAs(UnmanagedType.U4)]
             public UInt32 dwServiceType;
+
             [MarshalAs(UnmanagedType.U4)]
             public UInt32 dwStartType;
+
             [MarshalAs(UnmanagedType.U4)]
             public UInt32 dwErrorControl;
+
             [MarshalAs(UnmanagedType.LPWStr)]
             public String lpBinaryPathName;
+
             [MarshalAs(UnmanagedType.LPWStr)]
             public String lpLoadOrderGroup;
+
             [MarshalAs(UnmanagedType.U4)]
             public UInt32 dwTagID;
+
             [MarshalAs(UnmanagedType.LPWStr)]
             public String lpDependencies;
+
             [MarshalAs(UnmanagedType.LPWStr)]
             public String lpServiceStartName;
+
             [MarshalAs(UnmanagedType.LPWStr)]
             public String lpDisplayName;
         };
@@ -102,7 +109,7 @@ namespace DellFanControl
             IntPtr hService,
             SERVICE_CONTROL dwControl,
             ref SERVICE_STATUS lpServiceStatus
-        );
+                                                );
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true)]
         public static extern IntPtr CreateFileW(
@@ -113,7 +120,7 @@ namespace DellFanControl
             uint dwCreationDisposition,
             uint dwFlagsAndAttributes,
             IntPtr hTemplateFile
-        );
+                                               );
 
         [Flags]
         public enum SCM_ACCESS : uint
@@ -125,6 +132,7 @@ namespace DellFanControl
             SC_MANAGER_LOCK = 0x00008,
             SC_MANAGER_QUERY_LOCK_STATUS = 0x00010,
             SC_MANAGER_MODIFY_BOOT_CONFIG = 0x00020,
+
             SC_MANAGER_ALL_ACCESS = STANDARD_RIGHTS_REQUIRED |
             SC_MANAGER_CONNECT |
             SC_MANAGER_CREATE_SERVICE |
@@ -146,6 +154,7 @@ namespace DellFanControl
         public const int SERVICE_CONTROL_STOP = 0x00000001;
 
         public const int STANDARD_RIGHTS_REQUIRED = 0xF0000;
+
         public const uint SERVICE_ALL_ACCESS = STANDARD_RIGHTS_REQUIRED |
             SERVICE_QUERY_CONFIG |
             SERVICE_CHANGE_CONFIG |
@@ -184,7 +193,7 @@ namespace DellFanControl
             string machineName,
             string databaseName,
             uint dwAccess
-        );
+                                                  );
 
         [DllImport("advapi32.dll", SetLastError = true)]
         [
@@ -197,7 +206,7 @@ namespace DellFanControl
             IntPtr hSCManager,
             string lpServiceName,
             uint dwDesiredAccess
-        );
+                                                );
 
         [DllImport("advapi32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
         [
@@ -207,7 +216,7 @@ namespace DellFanControl
             IntPtr hService,
             int dwNumServiceArgs,
             string[] lpServiceArgVectors
-        );
+                                               );
 
         [DllImport("advapi32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
         public static extern Boolean QueryServiceConfigW(IntPtr hService, IntPtr intPtrQueryConfig, UInt32 cbBufSize, out UInt32 pcbBytesNeeded);
@@ -232,7 +241,7 @@ namespace DellFanControl
             string lpDependencies,
             string lpServiceStartName,
             string lpPassword
-        );
+                                                  );
 
         public static uint CTL_CODE(uint DeviceType, uint Function, uint Method, uint Access)
         {
@@ -257,7 +266,6 @@ namespace DellFanControl
             uint nOutBufferSize,
             ref uint lpBytesReturned,
             IntPtr lpOverlapped
-        );
-
+                                                 );
     }
 }

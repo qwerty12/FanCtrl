@@ -1,5 +1,5 @@
-﻿using System.ServiceModel;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
+using System.ServiceModel;
 
 namespace FanCtrlCommon
 {
@@ -8,10 +8,13 @@ namespace FanCtrlCommon
     {
         [OperationContract]
         FanCtrlData GetData();
+
         [OperationContract]
         uint GetFan1Rpm();
+
         [OperationContract]
         bool Level2IsForced();
+
         [OperationContract]
         void SetLevel2IsForced(bool forced);
     }
@@ -21,8 +24,10 @@ namespace FanCtrlCommon
     {
         [DataMember]
         public uint SystemTemperature { get; private set; }
+
         [DataMember]
         public uint FanLevel { get; private set; }
+
         public FanCtrlData(uint temp, uint fan)
         {
             SystemTemperature = temp;
