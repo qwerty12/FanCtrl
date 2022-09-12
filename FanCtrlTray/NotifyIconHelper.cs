@@ -21,7 +21,7 @@ namespace FanCtrlTray
             };
             notifyIcon.cbSize = (uint)Marshal.SizeOf(notifyIcon);
 
-            Marshal.ThrowExceptionForHR(NativeMethods.Shell_NotifyIconGetRect(ref notifyIcon, out rect));
+            Marshal.ThrowExceptionForHR(NativeMethods.Shell_NotifyIconGetRect(ref notifyIcon, ref rect));
 
             return Rectangle.FromLTRB(rect.left, rect.top, rect.right, rect.bottom);
         }

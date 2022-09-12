@@ -261,7 +261,7 @@ namespace FanCtrlTray
             WriteCopy = 0x08,
 
             /// <summary>
-            /// Pages in the region become guard pages. Any attempt to access a guard page causes the system to raise a STATUS_GUARD_PAGE_VIOLATION exception and turn off the guard page status. Guard pages thus act as a one-time access alarm. For more information, see Creating Guard Pages. 
+            /// Pages in the region become guard pages. Any attempt to access a guard page causes the system to raise a STATUS_GUARD_PAGE_VIOLATION exception and turn off the guard page status. Guard pages thus act as a one-time access alarm. For more information, see Creating Guard Pages.
             /// When an access attempt leads the system to turn off guard page status, the underlying page protection takes over.
             /// If a guard page exception occurs during a system service, the service typically returns a failure status indicator.
             /// This value cannot be used with PAGE_NOACCESS.
@@ -278,7 +278,7 @@ namespace FanCtrlTray
             /// <summary>
             /// Sets all pages to be write-combined.
             /// Applications should not use this attribute except when explicitly required for a device. Using the interlocked functions with memory that is mapped as write-combined can result in an EXCEPTION_ILLEGAL_INSTRUCTION exception.
-            /// The PAGE_WRITECOMBINE flag cannot be specified with the PAGE_NOACCESS, PAGE_GUARD, and PAGE_NOCACHE flags. 
+            /// The PAGE_WRITECOMBINE flag cannot be specified with the PAGE_NOACCESS, PAGE_GUARD, and PAGE_NOCACHE flags.
             /// The PAGE_WRITECOMBINE flag can be used only when allocating public memory with the VirtualAlloc, VirtualAllocEx, or VirtualAllocExNuma functions. To enable write-combined memory access for shared memory, specify the SEC_WRITECOMBINE flag when calling the CreateFileMapping function.
             /// </summary>
             WriteCombineModifierflag = 0x400
@@ -466,14 +466,14 @@ namespace FanCtrlTray
         /// <param name="iconLocation">Pointer to a RECT structure that, when this function returns successfully, receives the coordinates of the icon.</param>
         /// <returns>If the method succeeds, it returns S_OK. Otherwise, it returns an HRESULT error code.</returns>
         [DllImport("shell32.dll")]
-        public static extern int Shell_NotifyIconGetRect([In] ref NOTIFYICONIDENTIFIER identifier, [Out] out RECT iconLocation);
+        public static extern int Shell_NotifyIconGetRect([In] ref NOTIFYICONIDENTIFIER identifier, [In, Out] ref RECT iconLocation);
 
         /// <summary>
         /// Retrieves the dimensions of the bounding rectangle of the specified window. The dimensions are given in screen coordinates that are relative to the upper-left corner of the screen.
         /// </summary>
         /// <param name="hWnd">A handle to the window.</param>
         /// <param name="lpRect">A pointer to a RECT structure that receives the screen coordinates of the upper-left and lower-right corners of the window.</param>
-        /// <returns>If the function succeeds, the return value is nonzero. 
+        /// <returns>If the function succeeds, the return value is nonzero.
         /// If the function fails, the return value is zero. To get extended error information, call GetLastError.</returns>
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
@@ -545,7 +545,7 @@ namespace FanCtrlTray
         /// <summary>
         /// Releases, decommits, or releases and decommits a region of memory within the virtual address space of a specified process.
         /// </summary>
-        /// <param name="hProcess">A handle to a process. The function frees memory within the virtual address space of the process. 
+        /// <param name="hProcess">A handle to a process. The function frees memory within the virtual address space of the process.
         /// The handle must have the PROCESS_VM_OPERATION access right. For more information, see Process Security and Access Rights.</param>
         /// <param name="lpAddress">A pointer to the starting address of the region of memory to be freed.
         /// If the dwFreeType parameter is MEM_RELEASE, lpAddress must be the base address returned by the VirtualAllocEx function when the region is reserved.</param>
@@ -653,10 +653,10 @@ namespace FanCtrlTray
         /// Retrieves a handle to a window whose class name and window name match the specified strings. The function searches child windows, beginning with the one following the specified child window. This function does not perform a case-sensitive search.
         /// </summary>
         /// <param name="hwndParent">A handle to the parent window whose child windows are to be searched.
-        /// If hwndParent is NULL, the function uses the desktop window as the parent window. The function searches among windows that are child windows of the desktop. 
+        /// If hwndParent is NULL, the function uses the desktop window as the parent window. The function searches among windows that are child windows of the desktop.
         /// If hwndParent is HWND_MESSAGE, the function searches all message-only windows.</param>
-        /// <param name="hwndChildAfter">A handle to a child window. The search begins with the next child window in the Z order. The child window must be a direct child window of hwndParent, not just a descendant window. 
-        /// If hwndChildAfter is NULL, the search begins with the first child window of hwndParent. 
+        /// <param name="hwndChildAfter">A handle to a child window. The search begins with the next child window in the Z order. The child window must be a direct child window of hwndParent, not just a descendant window.
+        /// If hwndChildAfter is NULL, the search begins with the first child window of hwndParent.
         /// Note that if both hwndParent and hwndChildAfter are NULL, the function searches all top-level and message-only windows.</param>
         /// <param name="lpszClass">The class name or a class atom created by a previous call to the RegisterClass or RegisterClassEx function. The atom must be placed in the low-order word of lpszClass; the high-order word must be zero.
         /// If lpszClass is a string, it specifies the window class name. The class name can be any name registered with RegisterClass or RegisterClassEx, or any of the predefined control-class names, or it can be MAKEINTATOM(0x8000). In this latter case, 0x8000 is the atom for a menu class. For more information, see the Remarks section of this topic.</param>
@@ -669,7 +669,7 @@ namespace FanCtrlTray
         /// <summary>
         /// Retrieves a handle to the top-level window whose class name and window name match the specified strings. This function does not search child windows. This function does not perform a case-sensitive search.
         /// </summary>
-        /// <param name="lpClassName">The class name or a class atom created by a previous call to the RegisterClass or RegisterClassEx function. The atom must be in the low-order word of lpClassName; the high-order word must be zero. 
+        /// <param name="lpClassName">The class name or a class atom created by a previous call to the RegisterClass or RegisterClassEx function. The atom must be in the low-order word of lpClassName; the high-order word must be zero.
         /// If lpClassName points to a string, it specifies the window class name. The class name can be any name registered with RegisterClass or RegisterClassEx, or any of the predefined control-class names.
         /// If lpClassName is NULL, it finds any window whose title matches the lpWindowName parameter.</param>
         /// <param name="lpWindowName">The window name (the window's title). If this parameter is NULL, all window names match.</param>
@@ -710,7 +710,7 @@ namespace FanCtrlTray
 
             try
             {
-                EnumWindowProc childProc = new EnumWindowProc(EnumToolbarWindow);
+                EnumWindowProc childProc = EnumToolbarWindow;
                 EnumChildWindows(parent, childProc, GCHandle.ToIntPtr(listHandle));
             }
             finally
@@ -897,7 +897,7 @@ namespace FanCtrlTray
         /// Contains information used by Shell_NotifyIconGetRect to identify the icon for which to retrieve the bounding rectangle.
         /// </summary>
         /// <remarks>
-        /// The icon can be identified to Shell_NotifyIconGetRect through this structure in two ways: 
+        /// The icon can be identified to Shell_NotifyIconGetRect through this structure in two ways:
         ///    guidItem alone (recommended)
         ///    hWnd plus uID
         /// If guidItem is used, hWnd and uID are ignored.
@@ -905,7 +905,7 @@ namespace FanCtrlTray
         public struct NOTIFYICONIDENTIFIER
         {
             /// <summary>
-            /// Size of this structure, in bytes. 
+            /// Size of this structure, in bytes.
             /// </summary>
             public uint cbSize;
 

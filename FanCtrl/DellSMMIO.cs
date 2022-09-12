@@ -37,8 +37,7 @@ namespace FanCtrl
         public const uint DELL_SMM_IO_ENABLE_FAN_CTL2 = 0x35a3;
         public const uint DELL_SMM_IO_NO_ARG = 0x0;
 
-        private readonly Process thisProcess = Process.GetCurrentProcess();
-        private readonly IntPtr defaultProcessAffinity = Process.GetCurrentProcess().ProcessorAffinity;
+        private static readonly Process thisProcess = Process.GetCurrentProcess();
 
         public const string driverName = "BZHDELLSMMIO";
 
@@ -133,9 +132,6 @@ namespace FanCtrl
 
             uint result_size = 0;
 
-            // TODO: is this needed? It's the driver making the request, not us...
-            thisProcess.ProcessorAffinity = (IntPtr) 1;
-
             bool status_dic = Interop.DeviceIoControl(hDriver,
                 Interop.IOCTL_BZH_DELL_SMM_RWREG,
                 ref cam,
@@ -145,9 +141,10 @@ namespace FanCtrl
                 ref result_size,
                 IntPtr.Zero);
 
-            thisProcess.ProcessorAffinity = defaultProcessAffinity;
+            if (status_dic && cam.cmd != uint.MaxValue)
+                return cam.cmd;
 
-            return status_dic ? cam.cmd : 0;
+            return 0;
         }
 
         public static bool RemoveService(string svcName, bool onlyIfOnDemand)
@@ -259,11 +256,11 @@ namespace FanCtrl
             string exeDirname;
             try
             {
-                exeDirname = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+                exeDirname = System.IO.Path.GetDirectoryName(thisProcess.MainModule.FileName);
             }
             catch
             {
-                exeDirname = System.IO.Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+                exeDirname = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             }
             return exeDirname + "\\bzh_dell_smm_io_x64.sys";
         }
