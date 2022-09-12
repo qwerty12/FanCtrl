@@ -180,6 +180,8 @@ namespace FanCtrl
             if (maxTemp == 0)
             {
                 //Something is very wrong
+                DisableManualFanControl();
+                timer.Stop();
                 Stop();
                 return;
             }
