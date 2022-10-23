@@ -64,7 +64,7 @@ namespace FanCtrl
         private ushort ticksToSkip;
         private ushort ticksToSkip2;
         private bool _level2forced = false;
-        private const uint lv2MaxTemp = 65;
+        private const uint lv2MaxTemp = 67;
 
         private NVMeSmart nvme0;
 
@@ -189,7 +189,7 @@ namespace FanCtrl
             }
             else if (maxTemp >= lv2MaxTemp)
             {
-                ticksToSkip = 8;
+                ticksToSkip = 7;
                 ticksToSkip2 = 30;
             }
             else if (ticksToSkip > 0)
