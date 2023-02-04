@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
@@ -29,6 +30,12 @@ namespace FanCtrlTray
             ReleaseHandle();
         }
 
+        private void OnThemeColorsChanged()
+        {
+            t.Stop();
+            t.Start();
+        }
+
         protected override void WndProc(ref Message m)
         {
             switch (m.Msg)
@@ -36,18 +43,17 @@ namespace FanCtrlTray
                 case WM_DWMCOLORIZATIONCOLORCHANGED:
                 //case WM_DWMCOMPOSITIONCHANGED:
                 //case WM_THEMECHANGED:
-                    t.Stop();
-                    t.Start();
+                    OnThemeColorsChanged();
                     break;
-                /*case WM_SETTINGCHANGE:
+
+                case WM_SETTINGCHANGE:
                     var settingChanged = Marshal.PtrToStringUni(m.LParam);
                     if (settingChanged == "ImmersiveColorSet" || // Accent color
                         settingChanged == "WindowsThemeElement") // High contrast
                     {
-                        t.Stop();
-                        t.Start();
+                        OnThemeColorsChanged();
                     }
-                    break;*/
+                    break;
             }
             base.WndProc(ref m);
         }
