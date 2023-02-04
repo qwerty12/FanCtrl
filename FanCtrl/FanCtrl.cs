@@ -189,7 +189,7 @@ namespace FanCtrl
             }
             else if (maxTemp >= lv2MaxTemp)
             {
-                ticksToSkip = 7;
+                ticksToSkip = 6;
                 ticksToSkip2 = 30;
             }
             else if (ticksToSkip > 0)

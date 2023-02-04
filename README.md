@@ -7,7 +7,7 @@ This makes use of the driver from [Aaron Kelley](https://github.com/AaronKelley/
 This is a service that will load at windows startup. When it starts it will load the smm driver and manage your fans. At system shutdown or service stop the stock regulation will be re-enabled and the smm driver removed.
 
 ### Algorithm
-The fans will stop under 45 °C, run at 50% over 48 °C (30 seconds cooldown) and go full speed over 67 °C (7 seconds cooldown). You can customize this in `FanCtrl.cs`.
+The fans will stop under 45 °C, run at 50% over 48 °C (30 seconds cooldown) and go full speed over 67 °C (6 seconds cooldown). You can customize this in `FanCtrl.cs`.
 My goal was to keep my keyboard cool (I've got fairy fingers) without having to deal with SpeedFan.
 
 ### Monitoring
