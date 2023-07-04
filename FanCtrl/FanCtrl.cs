@@ -115,11 +115,11 @@ namespace FanCtrl
         {
             uint result = 0;
 
-            foreach (IHardware hardware in computer.Hardware)
+            foreach (var hardware in computer.Hardware)
             {
                 hardware.Update();
 
-                foreach (ISensor sensor in hardware.Sensors)
+                foreach (var sensor in hardware.Sensors)
                 {
                     if (sensor.SensorType != SensorType.Temperature || !sensor.Value.HasValue)
                         continue;
@@ -127,7 +127,7 @@ namespace FanCtrl
 #if DEBUG
                     Serilog.Log.Debug("Sensor: {0} ({2}), value: {1}", sensor.Name, sensor.Value.Value, hardware.Name);
 #endif
-                    uint val = (uint)sensor.Value;
+                    var val = (uint)sensor.Value;
                     if (val <= result)
                         continue;
 
@@ -144,18 +144,16 @@ namespace FanCtrl
             if (result == 0)
                 return 0;
 
-            NVMeHealthInfo health = nvme0?.GetHealthInfo();
+            var health = nvme0?.GetHealthInfo();
             if (health == null)
                 return result;
             var temperature = health.Temperature;
-            if (temperature > 0 && temperature < 1000)
-            {
+            if (temperature <= 0 || temperature >= 1000) return result;
 #if DEBUG
-                Serilog.Log.Information("NVME temp (deg. C): {temperature}", temperature);
+            Serilog.Log.Information("NVME temp (deg. C): {Temperature}", temperature);
 #endif
-                if (temperature > result)
-                    result = (uint)temperature;
-            }
+            if (temperature > result)
+                result = (uint)temperature;
 
             return result;
         }
@@ -262,14 +260,21 @@ namespace FanCtrl
             {
                 computer.Close();
             }
-            catch { }
+            catch
+            {
+                // ignored
+            }
+
             io.BDSID_Shutdown();
             host.Abort();
             try
             {
                 host.Close();
             }
-            catch { }
+            catch
+            {
+                // ignored
+            }
         }
 
         public FanCtrlData GetData()

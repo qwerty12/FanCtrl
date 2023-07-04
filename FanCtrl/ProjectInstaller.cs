@@ -18,7 +18,7 @@ namespace FanCtrl
         }
         protected override void OnAfterInstall(IDictionary savedState)
         {
-            using (ServiceController sc = new ServiceController(serviceInstaller1.ServiceName))
+            using (var sc = new ServiceController(serviceInstaller1.ServiceName))
             {
                 sc.Start();
             }
