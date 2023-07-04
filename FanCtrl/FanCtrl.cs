@@ -141,6 +141,10 @@ namespace FanCtrl
                 }
             }
 
+#if DEBUG
+            Serilog.Log.Debug("CPU Package temp (deg. C): {CpuPackageTemperature}", result);
+#endif
+
             if (result == 0)
                 return 0;
 
@@ -150,7 +154,7 @@ namespace FanCtrl
             var temperature = health.Temperature;
             if (temperature <= 0 || temperature >= 1000) return result;
 #if DEBUG
-            Serilog.Log.Information("NVME temp (deg. C): {Temperature}", temperature);
+            Serilog.Log.Information("NVME temp (deg. C): {NvmeTemperature}", temperature);
 #endif
             if (temperature > result)
                 result = (uint)temperature;
