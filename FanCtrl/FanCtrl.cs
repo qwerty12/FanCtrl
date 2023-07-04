@@ -131,13 +131,13 @@ namespace FanCtrl
                     if (val <= result)
                         continue;
 
-                    // "CPU Core #x" / "CPU Package"
-                    if (sensor.Name.Length != 11)
+                    if (sensor.Name != "CPU Package")
                         continue;
 
                     if (val >= lv2MaxTemp) // short-circuit
                         return val;
                     result = val;
+                    break;
                 }
             }
 
