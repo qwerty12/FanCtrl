@@ -24,7 +24,9 @@ namespace FanCtrl
             CanHandlePowerEvent = true;
             //CanShutdown = true;
             ServiceName = "FanCtrl";
-            Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.AboveNormal;
+            
+            using (var p = Process.GetCurrentProcess())
+                p.PriorityClass = ProcessPriorityClass.High;
 
 #if DEBUG
             Serilog.Log.Information("{ServiceName} starting", ServiceName);
