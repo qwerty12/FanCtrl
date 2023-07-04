@@ -116,10 +116,10 @@ namespace DellFanControl
             string lpFileName,
             uint dwDesiredAccess,
             uint dwShareMode,
-            IntPtr lpSecurityAttributes,
+            [Optional] IntPtr lpSecurityAttributes,
             uint dwCreationDisposition,
             uint dwFlagsAndAttributes,
-            IntPtr hTemplateFile
+            [Optional] IntPtr hTemplateFile
                                                );
 
         [Flags]
@@ -221,9 +221,6 @@ namespace DellFanControl
         [DllImport("advapi32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
         public static extern Boolean QueryServiceConfigW(IntPtr hService, IntPtr intPtrQueryConfig, UInt32 cbBufSize, out UInt32 pcbBytesNeeded);
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
-        public static extern Boolean QueryServiceConfigW(IntPtr hService, QUERY_SERVICE_CONFIG lpServiceConfig, UInt32 cbBufSize, out UInt32 pcbBytesNeeded);
-
         public const int ERROR_INSUFFICIENT_BUFFER = 122;
 
         [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true)]
@@ -256,16 +253,16 @@ namespace DellFanControl
             public uint stat2;
         }
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
         public static extern bool DeviceIoControl(
             IntPtr hDevice,
             uint dwIoControlCode,
-            ref SMBIOS_PKG lpInBuffer,
-            uint nInBufferSize,
+            [In] ref SMBIOS_PKG lpInBuffer,
+            [In] uint nInBufferSize,
             ref SMBIOS_PKG lpOutBuffer,
-            uint nOutBufferSize,
-            ref uint lpBytesReturned,
-            IntPtr lpOverlapped
+            [In] uint nOutBufferSize,
+            out uint lpBytesReturned,
+            [Optional] IntPtr lpOverlapped
                                                  );
     }
 }

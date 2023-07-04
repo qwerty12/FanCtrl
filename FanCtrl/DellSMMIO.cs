@@ -140,7 +140,7 @@ namespace FanCtrl
                 (uint)Marshal.SizeOf(cam),
                 ref cam,
                 (uint)Marshal.SizeOf(cam),
-                ref result_size,
+                out result_size,
                 IntPtr.Zero);
 
             if (status_dic && cam.cmd != uint.MaxValue)
