@@ -224,18 +224,7 @@ namespace FanCtrl
         {
             switch (powerStatus)
             {
-                case PowerBroadcastStatus.QuerySuspend:
-                case PowerBroadcastStatus.Suspend:
-                    timer.Stop();
-                    io.dell_smm_io_set_fan_lv(DellSMMIO.DELL_SMM_IO_FAN1, DellSMMIO.DELL_SMM_IO_FAN_LV0);
-                    if (powerStatus == PowerBroadcastStatus.Suspend)
-                        DisableManualFanControl();
-                    break;
-
-                case PowerBroadcastStatus.QuerySuspendFailed:
                 case PowerBroadcastStatus.ResumeSuspend:
-                    if (io.Opened)
-                        EnableManualFanControl();
                     OnStart(null);
                     break;
             }
